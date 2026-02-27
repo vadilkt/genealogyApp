@@ -1,0 +1,40 @@
+.layout {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.header {
+    background-color: #1a365d;
+    color: white;
+    padding: 1rem 2rem;
+}
+
+.nav {
+    display: flex;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.logo {
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.content {
+    flex: 1;
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.footer {
+    background-color: #f7fafc;
+    border-top: 1px solid #e2e8f0;
+    padding: 1rem 2rem;
+    text-align: center;
+    color: #718096;
+    font-size: 0.875rem;
+}

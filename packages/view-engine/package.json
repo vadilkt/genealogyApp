@@ -1,0 +1,24 @@
+{
+    "name": "@ms-genealogie/view-engine",
+    "version": "0.0.0",
+    "private": true,
+    "main": "./src/index.ts",
+    "types": "./src/index.ts",
+    "scripts": {
+        "build": "tsc",
+        "lint": "eslint src/",
+        "test": "jest"
+    },
+    "dependencies": {
+        "json-to-graphql-query": "^2.3.0"
+    },
+    "devDependencies": {
+        "eslint-config-custom": "*",
+        "jest-config": "*",
+        "tsconfig": "*",
+        "typescript": "^4.9.5",
+        "@ms-genealogie/ui": "*",
+        "@ms-genealogie/services": "*",
+        "@ms-genealogie/utils": "*"
+    }
+}

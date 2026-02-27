@@ -1,0 +1,32 @@
+# dependencies
+node_modules/
+
+# build outputs
+.next/
+dist/
+out/
+build/
+
+# turbo
+.turbo/
+
+# environment variables
+.env*.local
+
+# testing
+coverage/
+
+# misc
+.DS_Store
+*.pem
+*.log
+
+# IDE
+.vscode/
+.idea/
+
+# storybook
+storybook-static/
+
+# sonar
+.scannerwork/

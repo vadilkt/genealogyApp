@@ -1,0 +1,16 @@
+# dependencies
+node_modules/
+
+# build outputs
+.next/
+dist/
+out/
+build/
+
+# turbo
+.turbo/
+
+# misc
+*.d.ts
+coverage/
+storybook-static/

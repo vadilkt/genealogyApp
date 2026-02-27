@@ -1,0 +1,45 @@
+.sider {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 100;
+    overflow: auto;
+}
+
+.logo {
+    padding: 20px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    margin-bottom: 4px;
+}
+
+.logoTitle {
+    color: #fff;
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    display: block;
+}
+
+.logoSubtitle {
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 12px;
+}
+
+.header {
+    background: #fffaf3;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    border-bottom: 1px solid #edd9bc;
+    position: sticky;
+    top: 0;
+    z-index: 99;
+    box-shadow: 0 1px 6px rgba(180, 100, 20, 0.08);
+}
+
+.content {
+    margin: 24px;
+    min-height: calc(100vh - 64px - 48px);
+}

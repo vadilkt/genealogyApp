@@ -1,0 +1,17 @@
+# dependencies
+node_modules/
+
+# build outputs
+.next/
+dist/
+out/
+build/
+
+# turbo
+.turbo/
+
+# misc
+coverage/
+storybook-static/
+package-lock.json
+yarn.lock

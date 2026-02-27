@@ -1,0 +1,39 @@
+{
+    "name": "ms-genealogie",
+    "version": "1.0.0",
+    "private": true,
+    "workspaces": [
+        "apps/*",
+        "packages/*"
+    ],
+    "scripts": {
+        "build": "turbo run build",
+        "dev": "turbo run dev",
+        "lint": "turbo run lint",
+        "test": "turbo run test",
+        "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,scss,css}\"",
+        "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,scss,css}\"",
+        "prepare": "husky install",
+        "commit": "cz"
+    },
+    "devDependencies": {
+        "@commitlint/cli": "^17.8.0",
+        "@commitlint/config-conventional": "^17.8.0",
+        "commitizen": "^4.3.0",
+        "cz-conventional-changelog": "^3.3.0",
+        "eslint": "^8.50.0",
+        "husky": "^8.0.3",
+        "lint-staged": "^15.0.0",
+        "prettier": "^3.0.3",
+        "turbo": "^1.10.16"
+    },
+    "config": {
+        "commitizen": {
+            "path": "cz-conventional-changelog"
+        }
+    },
+    "engines": {
+        "node": ">=18"
+    },
+    "packageManager": "yarn@1.22.22"
+}
