@@ -49,17 +49,7 @@ const ProfileDetailContent = () => {
         });
     };
 
-    const tabItems = [
-        {
-            key: 'infos',
-            label: 'Informations',
-            children: <InfoTab profileId={id} />,
-        },
-        {
-            key: 'famille',
-            label: 'Famille',
-            children: <FamilyTab profileId={id} isOwnProfile={isOwnProfile} />,
-        },
+    const extraTabs = [
         ...(isAdmin || isOwnProfile ? [
             {
                 key: 'professionnel',
@@ -187,9 +177,27 @@ const ProfileDetailContent = () => {
                 </Space>
             </div>
 
-            {/* Tabs */}
+            {/* Informations */}
+            <Card
+                title="Informations"
+                style={{ borderRadius: 8, marginBottom: 16 }}
+                styles={{ header: { fontWeight: 600 } }}
+            >
+                <InfoTab profileId={id} />
+            </Card>
+
+            {/* Filiation & Famille */}
+            <Card
+                title="Filiation & Famille"
+                style={{ borderRadius: 8, marginBottom: 16 }}
+                styles={{ header: { fontWeight: 600 } }}
+            >
+                <FamilyTab profileId={id} isOwnProfile={isOwnProfile} />
+            </Card>
+
+            {/* Parcours professionnel, académique & alertes */}
             <Card style={{ borderRadius: 8 }}>
-                <Tabs items={tabItems} defaultActiveKey="infos" size="large" />
+                <Tabs items={extraTabs} size="large" />
             </Card>
         </div>
     );
