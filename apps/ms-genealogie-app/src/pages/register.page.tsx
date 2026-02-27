@@ -49,7 +49,7 @@ const RegisterPage: NextPage = () => {
                         <Text type="secondary">MS Généalogie — Inscription</Text>
                     </div>
 
-                    {error && (
+                    {!!error && (
                         <Alert
                             message="Erreur lors de l'inscription"
                             description="Ce nom d'utilisateur est peut-être déjà pris."

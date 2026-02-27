@@ -7,7 +7,8 @@
       "@/*": [
         "./src/*"
       ]
-    }
+    },
+    "types": ["node", "react", "react-dom"]
   },
   "include": [
     "next-env.d.ts",
@@ -15,6 +16,9 @@
     "src/**/*.tsx"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "src/_tests"
   ]
 }

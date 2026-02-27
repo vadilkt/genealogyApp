@@ -57,7 +57,7 @@ const LoginPage: NextPage = () => {
                         <Text type="secondary">Connectez-vous à votre compte</Text>
                     </div>
 
-                    {error && (
+                    {!!error && (
                         <Alert
                             message="Identifiants invalides"
                             description="Vérifiez votre nom d'utilisateur et votre mot de passe."
