@@ -2,6 +2,7 @@ import type { Profile, ValidationWarning } from '../types';
 
 export const mockProfile: Profile = {
     id: 1,
+    userId: 1,
     firstName: 'Jean',
     lastName: 'Dupont',
     gender: 'MALE',
@@ -24,6 +25,7 @@ export const mockProfiles: Profile[] = [
     mockProfile,
     {
         id: 2,
+        userId: 2,
         firstName: 'Marie',
         lastName: 'Dupont',
         gender: 'FEMALE',

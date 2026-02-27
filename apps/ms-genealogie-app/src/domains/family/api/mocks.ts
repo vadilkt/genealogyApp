@@ -3,6 +3,7 @@ import type { Profile } from '../../profiles/types';
 
 const baseProfile: Profile = {
     id: 1,
+    userId: 1,
     firstName: 'Jean',
     lastName: 'Dupont',
     gender: 'MALE',
