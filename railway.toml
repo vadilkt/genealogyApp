@@ -1,0 +1,9 @@
+[build]
+builder = "nixpacks"
+buildCommand = "yarn install && yarn workspace @ms-genealogie/app build"
+
+[deploy]
+startCommand = "yarn workspace @ms-genealogie/app start"
+healthcheckPath = "/"
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 3
