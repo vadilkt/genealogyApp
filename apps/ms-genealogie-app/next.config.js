@@ -5,6 +5,9 @@ const nextConfig = {
     reactStrictMode: true,
     output: 'standalone',
 
+    // ESLint runs in CI — do not block production builds
+    eslint: { ignoreDuringBuilds: true },
+
     // Custom page extensions
     pageExtensions: ['page.ts', 'page.tsx'],
 
