@@ -18,5 +18,5 @@ export const mockAuthResponse: AuthResponse = {
     id: 1,
     username: 'johndoe',
     email: 'john@example.com',
-    role: 'USER',
+    role: UserRole.USER,
 };
