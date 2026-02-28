@@ -1,9 +1,8 @@
 [build]
-builder = "nixpacks"
-buildCommand = "yarn install && yarn workspace @ms-genealogie/app build"
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
 
 [deploy]
-startCommand = "yarn workspace @ms-genealogie/app start"
 healthcheckPath = "/"
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3

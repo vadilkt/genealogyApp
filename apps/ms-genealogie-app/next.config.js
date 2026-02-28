@@ -1,12 +1,9 @@
-const path = require('path');
 const { i18n } = require('./next-i18next.config');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     reactStrictMode: true,
     output: 'standalone',
-    // Required in monorepo: trace workspace packages (services, auth…) correctly
-    outputFileTracingRoot: path.join(__dirname, '../../'),
 
     // ESLint and TypeScript checks run in CI — do not block production builds
     eslint: { ignoreDuringBuilds: true },
