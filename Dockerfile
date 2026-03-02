@@ -22,16 +22,16 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # Bind to all interfaces so Railway healthcheck can reach the server
 ENV HOSTNAME=0.0.0.0
 
-# Standalone output: server.js + traced node_modules + .next/server/
-# server.js ends up at the root of the standalone directory
+# outputFileTracingRoot = monorepo root → standalone mirrors the full monorepo tree
+# server.js lands at apps/ms-genealogie-app/server.js inside standalone/
 COPY --from=builder /app/apps/ms-genealogie-app/.next/standalone ./
 
-# Static assets (/_next/static/) — must sit next to server.js in .next/static/
-COPY --from=builder /app/apps/ms-genealogie-app/.next/static ./.next/static
+# Static assets: must sit next to server.js in apps/ms-genealogie-app/.next/static/
+COPY --from=builder /app/apps/ms-genealogie-app/.next/static ./apps/ms-genealogie-app/.next/static
 
 # Public directory (/locales, favicon, etc.)
-COPY --from=builder /app/apps/ms-genealogie-app/public ./public
+COPY --from=builder /app/apps/ms-genealogie-app/public ./apps/ms-genealogie-app/public
 
 EXPOSE 3000
 
-CMD ["node", "server.js"]
+CMD ["node", "apps/ms-genealogie-app/server.js"]
