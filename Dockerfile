@@ -19,7 +19,7 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-# Bind to all interfaces so Railway healthcheck can reach the server
+ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 
 # outputFileTracingRoot = monorepo root → standalone mirrors the full monorepo tree
