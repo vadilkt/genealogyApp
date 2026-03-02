@@ -9,6 +9,10 @@ COPY . .
 
 RUN yarn install --frozen-lockfile
 
+# Bust layer cache on every new Railway deploy
+ARG RAILWAY_GIT_COMMIT_SHA
+RUN echo "Building commit: ${RAILWAY_GIT_COMMIT_SHA:-local}"
+
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN yarn workspace @ms-genealogie/app build
 
