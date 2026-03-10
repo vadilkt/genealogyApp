@@ -6,18 +6,20 @@ import type { AcademicProfile } from '../academic/types';
 
 export interface Profile {
     id: number;
-    userId: number;
-    firstName: string;
-    lastName: string;
-    gender: string;
-    dateOfBirth: string;
+    userId: number | null;
+    firstName: string | null;
+    lastName: string | null;
+    gender: string | null;
+    dateOfBirth: string | null;
     dateOfDeath: string | null;
     age: number | null;
-    residence: string;
+    residence: string | null;
     birthPlace: Place | null;
     deathPlace: Place | null;
     professionalRecords: ProfessionalProfile[];
     academicRecords: AcademicProfile[];
+    createdAt: string | null;
+    updatedAt: string | null;
 }
 
 export interface CreateProfilePayload {
@@ -45,6 +47,18 @@ export interface UpdateProfilePayload {
 export interface ValidationWarning {
     code: string;
     message: string;
+}
+
+/** Nœud léger pour l'arbre généalogique global. */
+export interface ProfileNode {
+    id: number;
+    firstName: string | null;
+    lastName: string | null;
+    gender: string | null;
+    dateOfBirth: string | null;
+    dateOfDeath: string | null;
+    fatherId: number | null;
+    motherId: number | null;
 }
 
 export interface ProfileFormValues {

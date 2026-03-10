@@ -1,7 +1,7 @@
 import { apiClient } from '@/configs';
 
 import { PROFILES_BASE_PATH } from '../consts';
-import type { CreateProfilePayload, Profile, UpdateProfilePayload, ValidationWarning } from '../types';
+import type { CreateProfilePayload, Profile, ProfileNode, UpdateProfilePayload, ValidationWarning } from '../types';
 
 export const createProfile = async (payload: CreateProfilePayload): Promise<Profile> => {
     const response = await apiClient.post<Profile>(PROFILES_BASE_PATH, payload);
@@ -30,6 +30,16 @@ export const deleteProfile = async (id: number): Promise<void> => {
 
 export const getProfileWarnings = async (id: number): Promise<ValidationWarning[]> => {
     const response = await apiClient.get<ValidationWarning[]>(`${PROFILES_BASE_PATH}/${id}/warnings`);
+    return response.data;
+};
+
+export const getFamilyGraph = async (): Promise<ProfileNode[]> => {
+    const response = await apiClient.get<ProfileNode[]>(`${PROFILES_BASE_PATH}/family-graph`);
+    return response.data;
+};
+
+export const getOrphanProfiles = async (): Promise<Profile[]> => {
+    const response = await apiClient.get<Profile[]>(`${PROFILES_BASE_PATH}/orphans`);
     return response.data;
 };
 

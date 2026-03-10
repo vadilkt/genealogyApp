@@ -2,12 +2,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import {
     createProfile,
-    getProfile,
+    getFamilyGraph,
     getMyProfile,
+    getOrphanProfiles,
+    getProfile,
+    getProfileWarnings,
     searchProfiles,
     updateProfile,
     deleteProfile,
-    getProfileWarnings,
 } from '../api';
 import { PROFILES_QUERY_KEY } from '../consts';
 import type { CreateProfilePayload, UpdateProfilePayload } from '../types';
@@ -64,6 +66,18 @@ export const useMyProfile = () => {
         queryFn: getMyProfile,
     });
 };
+
+export const useFamilyGraph = () =>
+    useQuery({
+        queryKey: [PROFILES_QUERY_KEY, 'family-graph'],
+        queryFn: getFamilyGraph,
+    });
+
+export const useOrphanProfiles = () =>
+    useQuery({
+        queryKey: [PROFILES_QUERY_KEY, 'orphans'],
+        queryFn: getOrphanProfiles,
+    });
 
 export const useProfileWarnings = (id: number) => {
     return useQuery({
