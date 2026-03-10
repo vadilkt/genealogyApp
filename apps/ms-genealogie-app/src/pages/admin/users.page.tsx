@@ -94,7 +94,7 @@ const AdminUsersPage: NextPage = () => {
                         size="small"
                         onClick={() => handleResetPassword(record)}
                     >
-                        Reset MDP
+                        Réinitialiser
                     </Button>
                 </Tooltip>
             ),
@@ -117,7 +117,9 @@ const AdminUsersPage: NextPage = () => {
                     columns={columns}
                     rowKey="id"
                     loading={isLoading}
-                    pagination={{ pageSize: 20 }}
+                    pagination={{ pageSize: 20, showTotal: (total) => `${total} utilisateur${total > 1 ? 's' : ''}` }}
+                    locale={{ emptyText: 'Aucun utilisateur enregistré' }}
+                    scroll={{ x: 'max-content' }}
                 />
             </Space>
 

@@ -107,11 +107,13 @@ const PlacesContent = () => {
                 columns={columns}
                 rowKey="id"
                 loading={isLoading}
+                locale={{ emptyText: 'Aucun lieu enregistré — ajoutez-en un avec le bouton ci-dessus' }}
                 pagination={{
                     pageSize: 20,
                     showTotal: (total) => `${total} lieu${total > 1 ? 'x' : ''}`,
                 }}
                 style={{ borderRadius: 8 }}
+                scroll={{ x: 'max-content' }}
             />
 
             <Modal
