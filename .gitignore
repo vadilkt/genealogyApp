@@ -13,6 +13,9 @@ build/
 # environment variables
 .env*.local
 
+# typescript build info
+*.tsbuildinfo
+
 # testing
 coverage/
 
