@@ -93,7 +93,7 @@ const DashboardContent = () => {
             key: 'dateOfBirth',
             render: (val: string) => formatDateShort(val),
             sorter: (a, b) =>
-                new Date(a.dateOfBirth).getTime() - new Date(b.dateOfBirth).getTime(),
+                new Date(a.dateOfBirth ?? 0).getTime() - new Date(b.dateOfBirth ?? 0).getTime(),
         },
         {
             title: 'Décès',
@@ -257,7 +257,7 @@ const DashboardContent = () => {
                     value={searchValue}
                     onChange={(e) => setSearchValue(e.target.value)}
                     onPressEnter={handleSearch}
-                    style={{ maxWidth: 400 }}
+                    style={{ flex: 1 }}
                     allowClear
                     onClear={() => {
                         setSearchValue('');
@@ -275,6 +275,11 @@ const DashboardContent = () => {
                 columns={columns}
                 rowKey="id"
                 loading={isFetching}
+                locale={{
+                    emptyText: keyword
+                        ? `Aucun profil ne correspond à "${keyword}"`
+                        : 'Aucun profil enregistré',
+                }}
                 onRow={(record) => ({
                     onClick: (e) => {
                         const target = e.target as HTMLElement;
@@ -291,6 +296,7 @@ const DashboardContent = () => {
                 }}
                 bordered={false}
                 style={{ background: '#fff', borderRadius: 8 }}
+                scroll={{ x: 'max-content' }}
             />
         </div>
     );
