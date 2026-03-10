@@ -1,5 +1,6 @@
 import { ArrowLeftOutlined, SaveOutlined } from '@ant-design/icons';
 import {
+    Col,
     Form,
     Input,
     Button,
@@ -9,6 +10,7 @@ import {
     Space,
     Card,
     Divider,
+    Row,
     message,
 } from 'antd';
 import type { NextPage } from 'next';
@@ -93,93 +95,120 @@ const NewProfileContent = () => {
                 >
                     <Divider orientation="left">Informations personnelles</Divider>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 16px' }}>
-                        <Form.Item
-                            name="firstName"
-                            label="Prénom"
-                            rules={[{ required: true, message: 'Le prénom est requis' }]}
-                        >
-                            <Input placeholder="Prénom" />
-                        </Form.Item>
+                    <Row gutter={16}>
+                        <Col xs={24} sm={12}>
+                            <Form.Item
+                                name="firstName"
+                                label="Prénom"
+                                rules={[{ required: true, message: 'Le prénom est requis' }]}
+                            >
+                                <Input placeholder="Prénom" />
+                            </Form.Item>
+                        </Col>
+                        <Col xs={24} sm={12}>
+                            <Form.Item name="lastName" label="Nom de famille">
+                                <Input placeholder="Nom de famille" />
+                            </Form.Item>
+                        </Col>
+                    </Row>
 
-                        <Form.Item
-                            name="lastName"
-                            label="Nom de famille"
-                        >
-                            <Input placeholder="Nom de famille" />
-                        </Form.Item>
-                    </div>
+                    <Row gutter={16}>
+                        <Col xs={24} sm={12}>
+                            <Form.Item
+                                name="gender"
+                                label="Genre"
+                                rules={[{ required: true, message: 'Le genre est requis' }]}
+                            >
+                                <Select placeholder="Sélectionner">
+                                    <Select.Option value="MALE">Homme</Select.Option>
+                                    <Select.Option value="FEMALE">Femme</Select.Option>
+                                </Select>
+                            </Form.Item>
+                        </Col>
+                        <Col xs={24} sm={12}>
+                            <Form.Item
+                                name="residence"
+                                label="Résidence"
+                                rules={[{ required: true, message: 'La résidence est requise' }]}
+                            >
+                                <Input placeholder="Ville de résidence" />
+                            </Form.Item>
+                        </Col>
+                    </Row>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 16px' }}>
-                        <Form.Item
-                            name="gender"
-                            label="Genre"
-                            rules={[{ required: true, message: 'Le genre est requis' }]}
-                        >
-                            <Select placeholder="Sélectionner">
-                                <Select.Option value="MALE">Homme</Select.Option>
-                                <Select.Option value="FEMALE">Femme</Select.Option>
-                            </Select>
-                        </Form.Item>
-
-                        <Form.Item
-                            name="residence"
-                            label="Résidence"
-                            rules={[{ required: true, message: 'La résidence est requise' }]}
-                        >
-                            <Input placeholder="Ville de résidence" />
-                        </Form.Item>
-                    </div>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 16px' }}>
-                        <Form.Item
-                            name="dateOfBirth"
-                            label="Date de naissance"
-                            rules={[{ required: true, message: 'La date de naissance est requise' }]}
-                        >
-                            <DatePicker
-                                style={{ width: '100%' }}
-                                format="DD/MM/YYYY"
-                                placeholder="jj/mm/aaaa"
-                            />
-                        </Form.Item>
-
-                        <Form.Item name="dateOfDeath" label="Date de décès">
-                            <DatePicker
-                                style={{ width: '100%' }}
-                                format="DD/MM/YYYY"
-                                placeholder="jj/mm/aaaa (optionnel)"
-                            />
-                        </Form.Item>
-                    </div>
+                    <Row gutter={16}>
+                        <Col xs={24} sm={12}>
+                            <Form.Item
+                                name="dateOfBirth"
+                                label="Date de naissance"
+                                rules={[{ required: true, message: 'La date de naissance est requise' }]}
+                            >
+                                <DatePicker
+                                    style={{ width: '100%' }}
+                                    format="DD/MM/YYYY"
+                                    placeholder="jj/mm/aaaa"
+                                    disabledDate={(d) => d.isAfter(new Date())}
+                                />
+                            </Form.Item>
+                        </Col>
+                        <Col xs={24} sm={12}>
+                            <Form.Item
+                                name="dateOfDeath"
+                                label="Date de décès"
+                                dependencies={['dateOfBirth']}
+                                rules={[
+                                    ({ getFieldValue }) => ({
+                                        validator(_, value) {
+                                            const birth = getFieldValue('dateOfBirth');
+                                            if (!value || !birth || value.isAfter(birth)) return Promise.resolve();
+                                            return Promise.reject(new Error('La date de décès doit être après la naissance'));
+                                        },
+                                    }),
+                                ]}
+                            >
+                                <DatePicker
+                                    style={{ width: '100%' }}
+                                    format="DD/MM/YYYY"
+                                    placeholder="jj/mm/aaaa (optionnel)"
+                                    disabledDate={(d) => {
+                                        const birth = form.getFieldValue('dateOfBirth');
+                                        return birth ? d.isBefore(birth) : false;
+                                    }}
+                                />
+                            </Form.Item>
+                        </Col>
+                    </Row>
 
                     <Divider orientation="left">Localisation</Divider>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 16px' }}>
-                        <Form.Item name="birthPlaceId" label="Lieu de naissance">
-                            <Select
-                                placeholder="Sélectionner un lieu"
-                                options={placeOptions}
-                                allowClear
-                                showSearch
-                                filterOption={(input, option) =>
-                                    (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-                                }
-                            />
-                        </Form.Item>
-
-                        <Form.Item name="deathPlaceId" label="Lieu de décès">
-                            <Select
-                                placeholder="Sélectionner un lieu"
-                                options={placeOptions}
-                                allowClear
-                                showSearch
-                                filterOption={(input, option) =>
-                                    (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-                                }
-                            />
-                        </Form.Item>
-                    </div>
+                    <Row gutter={16}>
+                        <Col xs={24} sm={12}>
+                            <Form.Item name="birthPlaceId" label="Lieu de naissance">
+                                <Select
+                                    placeholder="Rechercher un lieu..."
+                                    options={placeOptions}
+                                    allowClear
+                                    showSearch
+                                    filterOption={(input, option) =>
+                                        (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                                    }
+                                />
+                            </Form.Item>
+                        </Col>
+                        <Col xs={24} sm={12}>
+                            <Form.Item name="deathPlaceId" label="Lieu de décès">
+                                <Select
+                                    placeholder="Rechercher un lieu..."
+                                    options={placeOptions}
+                                    allowClear
+                                    showSearch
+                                    filterOption={(input, option) =>
+                                        (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                                    }
+                                />
+                            </Form.Item>
+                        </Col>
+                    </Row>
 
                     <Divider />
 
