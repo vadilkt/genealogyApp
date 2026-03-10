@@ -1,4 +1,5 @@
 import { apiClient } from '@/configs';
+import { toArray } from '@/utils';
 
 import { ACADEMIC_BASE_PATH } from '../consts';
 import type { AcademicProfile, CreateAcademicPayload, UpdateAcademicPayload } from '../types';
@@ -22,10 +23,10 @@ export const getAcademic = async (academicId: number): Promise<AcademicProfile> 
 };
 
 export const getAcademicsByProfile = async (profileId: number): Promise<AcademicProfile[]> => {
-    const response = await apiClient.get<AcademicProfile[]>(
+    const response = await apiClient.get<unknown>(
         `${ACADEMIC_BASE_PATH}/${profileId}/academic`,
     );
-    return response.data;
+    return toArray<AcademicProfile>(response.data);
 };
 
 export const updateAcademic = async (

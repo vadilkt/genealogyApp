@@ -1,4 +1,5 @@
 import { apiClient } from '@/configs';
+import { toArray } from '@/utils';
 
 import { FAMILY_BASE_PATH } from '../consts';
 import type {
@@ -15,7 +16,14 @@ import type { Profile } from '../../profiles/types';
 
 export const getFamily = async (profileId: number): Promise<FamilyResponse> => {
     const response = await apiClient.get<FamilyResponse>(`${FAMILY_BASE_PATH}/${profileId}/family`);
-    return response.data;
+    const data = response.data;
+    return {
+        ...data,
+        children: Array.isArray(data.children) ? data.children : [],
+        siblings: Array.isArray(data.siblings) ? data.siblings : [],
+        spouses: Array.isArray(data.spouses) ? data.spouses : [],
+        marriages: Array.isArray(data.marriages) ? data.marriages : [],
+    };
 };
 
 export const getAncestors = async (profileId: number, depth = 5): Promise<AncestorNode> => {
@@ -40,24 +48,24 @@ export const getParents = async (profileId: number): Promise<FamilyResponse> => 
 };
 
 export const getChildren = async (profileId: number): Promise<Profile[]> => {
-    const response = await apiClient.get<Profile[]>(
+    const response = await apiClient.get<unknown>(
         `${FAMILY_BASE_PATH}/${profileId}/children`,
     );
-    return response.data;
+    return toArray<Profile>(response.data);
 };
 
 export const getSpouses = async (profileId: number): Promise<Profile[]> => {
-    const response = await apiClient.get<Profile[]>(
+    const response = await apiClient.get<unknown>(
         `${FAMILY_BASE_PATH}/${profileId}/spouses`,
     );
-    return response.data;
+    return toArray<Profile>(response.data);
 };
 
 export const getSiblings = async (profileId: number): Promise<Profile[]> => {
-    const response = await apiClient.get<Profile[]>(
+    const response = await apiClient.get<unknown>(
         `${FAMILY_BASE_PATH}/${profileId}/siblings`,
     );
-    return response.data;
+    return toArray<Profile>(response.data);
 };
 
 // --- Mutation des liens parentaux ---

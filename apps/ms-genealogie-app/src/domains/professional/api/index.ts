@@ -1,4 +1,5 @@
 import { apiClient } from '@/configs';
+import { toArray } from '@/utils';
 
 import { PROFESSIONAL_BASE_PATH } from '../consts';
 import type { CreateProfessionalPayload, ProfessionalProfile, UpdateProfessionalPayload } from '../types';
@@ -22,10 +23,10 @@ export const getProfessional = async (professionalId: number): Promise<Professio
 };
 
 export const getProfessionalsByProfile = async (profileId: number): Promise<ProfessionalProfile[]> => {
-    const response = await apiClient.get<ProfessionalProfile[]>(
+    const response = await apiClient.get<unknown>(
         `${PROFESSIONAL_BASE_PATH}/${profileId}/professional`,
     );
-    return response.data;
+    return toArray<ProfessionalProfile>(response.data);
 };
 
 export const updateProfessional = async (
