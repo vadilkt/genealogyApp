@@ -3,13 +3,20 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '@/configs';
 import { PROFILES_QUERY_KEY } from '@/domains/profiles/consts';
 
-import { getUsers } from '../api';
+import { changePassword, getUsers } from '../api';
 import { USERS_QUERY_KEY } from '../consts';
 
 export const useUsers = () => {
     return useQuery({
         queryKey: [USERS_QUERY_KEY],
         queryFn: getUsers,
+    });
+};
+
+export const useChangePassword = () => {
+    return useMutation({
+        mutationFn: ({ userId, newPassword }: { userId: number; newPassword: string }) =>
+            changePassword(userId, newPassword),
     });
 };
 
