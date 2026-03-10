@@ -40,6 +40,7 @@ interface LayoutEdge {
     y2: number;
     animDelay: number;
     dashed: boolean;
+    marriage?: boolean; // horizontal connector between root and spouse
 }
 
 interface TreeLayout {
@@ -114,8 +115,10 @@ function layoutAncestors(root: AncestorNode, siblings: Profile[], spouses: Profi
         });
     }
 
-    assignCols(root, 0);
+    const rootCol = assignCols(root, 0) as number;
     addEdges(root);
+
+    const rootX = rootCol * (NW + HG) + PAD;
 
     // Look up parent positions for sibling→parent dashed edges
     const fatherPos = root.father ? posMap.get(root.father.profile.id) : undefined;
@@ -141,14 +144,23 @@ function layoutAncestors(root: AncestorNode, siblings: Profile[], spouses: Profi
         }
     });
 
-    // Add spouses to the right of all ancestor columns
-    const ancestorColCount = Math.max(1, leafCounter);
+    // Place spouses immediately to the right of the root, with a marriage connector.
     spouses.forEach((spouse, j) => {
-        const x = (ancestorColCount + j) * (NW + HG) + PAD;
+        const x = rootX + (j + 1) * (NW + HG);
         nodes.push({ profile: spouse, depth: 0, x, y: rootRowY, animDelay: 80, nodeType: 'spouse' });
+        edges.push({
+            x1: rootX + j * (NW + HG) + NW,
+            y1: rootRowY + NH / 2,
+            x2: x,
+            y2: rootRowY + NH / 2,
+            animDelay: 120,
+            dashed: false,
+            marriage: true,
+        });
     });
 
-    const totalCols = ancestorColCount + spouses.length;
+    const ancestorColCount = Math.max(1, leafCounter);
+    const totalCols = Math.max(ancestorColCount, rootCol + 1 + spouses.length);
     const w = totalCols * (NW + HG) - HG + 2 * PAD;
     const h = (maxDepth + 1) * (NH + VG) - VG + 2 * PAD;
     return { nodes, edges, w, h };
@@ -205,19 +217,29 @@ function layoutDescendants(root: DescendantNode, spouses: Profile[]): TreeLayout
         });
     }
 
-    assignCols(root, 0);
+    const rootCol = assignCols(root, 0);
     addEdges(root);
 
     const rootRowY = PAD; // root is always at depth 0
+    const rootX = rootCol * (NW + HG) + PAD;
 
-    // Add spouses to the right of all descendants
-    const descColCount = Math.max(1, leafCounter);
+    // Place spouses immediately to the right of the root, with a marriage connector.
     spouses.forEach((spouse, j) => {
-        const x = (descColCount + j) * (NW + HG) + PAD;
+        const x = rootX + (j + 1) * (NW + HG);
         nodes.push({ profile: spouse, depth: 0, x, y: rootRowY, animDelay: 80, nodeType: 'spouse' });
+        edges.push({
+            x1: rootX + j * (NW + HG) + NW,
+            y1: rootRowY + NH / 2,
+            x2: x,
+            y2: rootRowY + NH / 2,
+            animDelay: 120,
+            dashed: false,
+            marriage: true,
+        });
     });
 
-    const totalCols = descColCount + spouses.length;
+    const descColCount = Math.max(1, leafCounter);
+    const totalCols = Math.max(descColCount, rootCol + 1 + spouses.length);
     const w = totalCols * (NW + HG) - HG + 2 * PAD;
     const h = (maxDescDepth + 1) * (NH + VG) - VG + 2 * PAD;
     return { nodes, edges, w, h };
@@ -237,6 +259,19 @@ const SvgTree = ({ nodes, edges, w, h }: TreeLayout) => {
                     style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none' }}
                 >
                     {edges.map((e, i) => {
+                        if (e.marriage) {
+                            return (
+                                <line
+                                    key={i}
+                                    x1={e.x1} y1={e.y1} x2={e.x2} y2={e.y2}
+                                    stroke="#e879a8"
+                                    strokeWidth={2}
+                                    strokeDasharray="5,3"
+                                    strokeOpacity={0.75}
+                                    style={{ animationDelay: `${e.animDelay}ms` }}
+                                />
+                            );
+                        }
                         const midY = (e.y1 + e.y2) / 2;
                         const d = `M ${e.x1},${e.y1} C ${e.x1},${midY} ${e.x2},${midY} ${e.x2},${e.y2}`;
                         if (e.dashed) {
@@ -344,6 +379,9 @@ function exportTreeAsSvg(layout: TreeLayout, filename: string) {
     }).join('');
 
     const paths = layout.edges.map((e) => {
+        if (e.marriage) {
+            return `<line x1="${e.x1}" y1="${e.y1}" x2="${e.x2}" y2="${e.y2}" stroke="#e879a8" stroke-width="2" stroke-dasharray="5,3" stroke-opacity="0.75"/>`;
+        }
         const midY = (e.y1 + e.y2) / 2;
         const d = `M ${e.x1},${e.y1} C ${e.x1},${midY} ${e.x2},${midY} ${e.x2},${e.y2}`;
         return `<path d="${d}" fill="none" stroke="${EDGE_COLOR}" stroke-width="1.5"${e.dashed ? ' stroke-dasharray="8,4"' : ''}/>`;
