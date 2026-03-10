@@ -13,12 +13,13 @@ const { Title, Text } = Typography;
 const REDIRECT_DELAY_MS = 1200;
 
 const CARD_STYLE = {
-    width: 460,
+    width: '100%',
+    maxWidth: 460,
     borderRadius: 16,
     boxShadow: '0 24px 64px rgba(194, 65, 12, 0.3)',
 };
 
-const CARD_BODY_STYLE = { padding: '40px 40px 32px' };
+const CARD_BODY_STYLE = { padding: '32px 28px' };
 
 const RegisterPage: NextPage = () => {
     const router = useRouter();

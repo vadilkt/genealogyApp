@@ -13,12 +13,13 @@ import styles from '@/styles/auth.module.scss';
 const { Title, Text } = Typography;
 
 const CARD_STYLE = {
-    width: 420,
+    width: '100%',
+    maxWidth: 420,
     borderRadius: 16,
     boxShadow: '0 24px 64px rgba(194, 65, 12, 0.3)',
 };
 
-const CARD_BODY_STYLE = { padding: '40px 40px 32px' };
+const CARD_BODY_STYLE = { padding: '32px 28px' };
 
 const LoginPage: NextPage = () => {
     const { isAuthenticated, setAuth } = useAuthContext();
