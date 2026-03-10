@@ -42,7 +42,7 @@ const DashboardContent = () => {
 
     const { data: profiles = [], isFetching, refetch } = useSearchProfiles(keyword || undefined);
     const { mutate: deleteProfile, isPending: isDeleting } = useDeleteProfile();
-    const { data: orphans = [] } = useOrphanProfiles();
+    const { data: orphans = [] } = useOrphanProfiles(isAdmin);
 
     const handleSearch = useCallback(() => {
         setKeyword(searchValue.trim());

@@ -15,8 +15,13 @@ export const getProfile = async (id: number): Promise<Profile> => {
 
 export const searchProfiles = async (keyword?: string): Promise<Profile[]> => {
     const params = keyword ? `?keyword=${encodeURIComponent(keyword)}` : '';
-    const response = await apiClient.get<Profile[]>(`${PROFILES_BASE_PATH}/search${params}`);
-    return response.data;
+    const response = await apiClient.get<unknown>(`${PROFILES_BASE_PATH}/search${params}`);
+    const data = response.data;
+    if (Array.isArray(data)) return data as Profile[];
+    if (data && typeof data === 'object' && 'content' in data && Array.isArray((data as Record<string, unknown>).content)) {
+        return (data as { content: Profile[] }).content;
+    }
+    return [];
 };
 
 export const updateProfile = async (id: number, payload: UpdateProfilePayload): Promise<Profile> => {

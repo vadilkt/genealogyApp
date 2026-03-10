@@ -73,10 +73,11 @@ export const useFamilyGraph = () =>
         queryFn: getFamilyGraph,
     });
 
-export const useOrphanProfiles = () =>
+export const useOrphanProfiles = (enabled = true) =>
     useQuery({
         queryKey: [PROFILES_QUERY_KEY, 'orphans'],
         queryFn: getOrphanProfiles,
+        enabled,
     });
 
 export const useProfileWarnings = (id: number) => {
