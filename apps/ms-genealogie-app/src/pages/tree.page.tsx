@@ -44,6 +44,11 @@ interface GlobalLayout {
 // ─── Generation computation ───────────────────────────────────────────────────
 // Generation 0 = oldest ancestors (no known parents).
 // Each person's generation = max(parent generations) + 1.
+// After the initial DFS pass, we run an iterative convergence that:
+//   1. Aligns spouses (inferred from shared children) to the same generation.
+//   2. Re-pushes children below their parents if a parent's gen was lifted.
+// This prevents a spouse with no known parents from being stuck at gen=0
+// while their partner is at gen=1 or higher.
 function computeGenerations(nodes: ProfileNode[]): Map<number, number> {
     const byId = new Map(nodes.map((n) => [n.id, n]));
     const genMap = new Map<number, number>();
@@ -63,6 +68,36 @@ function computeGenerations(nodes: ProfileNode[]): Map<number, number> {
     }
 
     nodes.forEach((n) => gen(n.id));
+
+    // Iterative convergence: align spouses + push children below parents.
+    let changed = true;
+    while (changed) {
+        changed = false;
+        // Step 1 – spouses share the same generation (take the max of the two).
+        nodes.forEach((child) => {
+            if (!child.fatherId || !child.motherId) return;
+            if (!byId.has(child.fatherId) || !byId.has(child.motherId)) return;
+            const gf = genMap.get(child.fatherId)!;
+            const gm = genMap.get(child.motherId)!;
+            const target = Math.max(gf, gm);
+            if (gf !== target) { genMap.set(child.fatherId, target); changed = true; }
+            if (gm !== target) { genMap.set(child.motherId, target); changed = true; }
+        });
+        // Step 2 – each child must be strictly below both parents.
+        nodes.forEach((n) => {
+            let g = genMap.get(n.id)!;
+            if (n.fatherId && genMap.has(n.fatherId)) {
+                const need = genMap.get(n.fatherId)! + 1;
+                if (need > g) { g = need; changed = true; }
+            }
+            if (n.motherId && genMap.has(n.motherId)) {
+                const need = genMap.get(n.motherId)! + 1;
+                if (need > g) { g = need; changed = true; }
+            }
+            genMap.set(n.id, g);
+        });
+    }
+
     return genMap;
 }
 
