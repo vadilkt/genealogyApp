@@ -1,5 +1,5 @@
 import { ArrowLeftOutlined, DeleteOutlined, EditOutlined, UserOutlined } from '@ant-design/icons';
-import { Button, Card, Empty, Popconfirm, Select, Space, Spin, Tag, Tabs, Typography, message } from 'antd';
+import { Button, Card, Empty, Popconfirm, Select, Skeleton, Space, Tag, Tabs, Typography, message } from 'antd';
 import type { NextPage } from 'next';
 import { useRouter } from 'next/router';
 
@@ -30,9 +30,9 @@ const ProfileDetailContent = () => {
 
     if (isLoading || !id) {
         return (
-            <div style={{ display: 'flex', justifyContent: 'center', padding: 80 }}>
-                <Spin size="large" />
-            </div>
+            <Card>
+                <Skeleton active avatar paragraph={{ rows: 6 }} />
+            </Card>
         );
     }
 
