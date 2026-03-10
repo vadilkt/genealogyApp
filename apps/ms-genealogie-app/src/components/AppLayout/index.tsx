@@ -8,16 +8,24 @@ import {
     UsergroupAddOutlined,
     BellOutlined,
     ApartmentOutlined,
+    MenuOutlined,
 } from '@ant-design/icons';
 import { Badge, Dropdown, Layout, Menu, Avatar, Typography, Button, Space, Tag, List } from 'antd';
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+import 'dayjs/locale/fr';
 import { useRouter } from 'next/router';
 import type { ReactNode } from 'react';
+import { useState } from 'react';
 
 import { useAuthContext } from '@/contexts/AuthContext';
 import { useMyProfile } from '@/domains/profiles/useProfiles';
 import { useMarkAllRead, useNotifications, useUnreadCount } from '@/domains/notifications/useNotifications';
 
 import styles from './AppLayout.module.scss';
+
+dayjs.extend(relativeTime);
+dayjs.locale('fr');
 
 const { Header, Sider, Content } = Layout;
 const { Text } = Typography;
@@ -29,6 +37,7 @@ interface AppLayoutProps {
 export const AppLayout = ({ children }: AppLayoutProps) => {
     const { user, isAdmin, clearAuth } = useAuthContext();
     const router = useRouter();
+    const [siderCollapsed, setSiderCollapsed] = useState(false);
     const { data: myProfile } = useMyProfile();
     const { data: notifications = [] } = useNotifications();
     const { data: unreadCount = 0 } = useUnreadCount();
@@ -123,7 +132,16 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
 
     return (
         <Layout style={{ minHeight: '100vh' }}>
-            <Sider theme="dark" width={230} className={styles.sider} style={{ background: 'linear-gradient(180deg, #2d1a0e 0%, #1a0d06 100%)' }}>
+            <Sider
+                theme="dark"
+                width={230}
+                collapsedWidth={0}
+                breakpoint="lg"
+                collapsed={siderCollapsed}
+                onCollapse={(val) => setSiderCollapsed(val)}
+                className={styles.sider}
+                style={{ background: 'linear-gradient(180deg, #2d1a0e 0%, #1a0d06 100%)' }}
+            >
                 <div className={styles.logo}>
                     <Text className={styles.logoTitle}>MS Généalogie</Text>
                     <Text className={styles.logoSubtitle}>Gestion familiale</Text>
@@ -138,8 +156,15 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
                 />
             </Sider>
 
-            <Layout style={{ marginLeft: 230 }}>
+            <Layout style={{ marginLeft: siderCollapsed ? 0 : 230, transition: 'margin-left 0.2s' }}>
                 <Header className={styles.header}>
+                    <Button
+                        type="text"
+                        icon={<MenuOutlined />}
+                        onClick={() => setSiderCollapsed((v) => !v)}
+                        className={styles.hamburger}
+                        aria-label="Ouvrir/fermer le menu"
+                    />
                     <Space size={16} align="center">
                         <Avatar
                             size={32}
@@ -162,20 +187,19 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
                             trigger={['click']}
                             onOpenChange={(open) => { if (open && unreadCount > 0) markAllRead(); }}
                             dropdownRender={() => (
-                                <div style={{ background: '#fff', borderRadius: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.12)', width: 320, maxHeight: 360, overflow: 'auto' }}>
+                                <div style={{ background: '#fff', borderRadius: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.12)', width: 340, maxHeight: 400, overflow: 'auto' }}>
                                     <div style={{ padding: '12px 16px', borderBottom: '1px solid #f0f0f0', fontWeight: 600 }}>
                                         Notifications
                                     </div>
                                     {notifications.length === 0 ? (
-                                        <div style={{ padding: '24px 16px', color: '#999', textAlign: 'center' }}>Aucune notification</div>
+                                        <div style={{ padding: '32px 16px', color: '#999', textAlign: 'center' }}>Aucune notification</div>
                                     ) : (
                                         <List
                                             dataSource={notifications}
                                             renderItem={(n) => (
-                                                <List.Item style={{ padding: '10px 16px', background: n.read ? 'transparent' : '#fff7ed' }}>
-                                                    <List.Item.Meta
-                                                        description={<span style={{ fontSize: 13 }}>{n.message}</span>}
-                                                    />
+                                                <List.Item style={{ padding: '10px 16px', background: n.read ? 'transparent' : '#fff7ed', display: 'block' }}>
+                                                    <div style={{ fontSize: 13, color: '#1a0d06', marginBottom: 4 }}>{n.message}</div>
+                                                    <div style={{ fontSize: 11, color: '#aaa' }}>{dayjs(n.createdAt).fromNow()}</div>
                                                 </List.Item>
                                             )}
                                         />
