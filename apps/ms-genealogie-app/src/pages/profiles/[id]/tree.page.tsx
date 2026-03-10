@@ -271,7 +271,7 @@ const SvgTree = ({ nodes, edges, w, h }: TreeLayout) => {
 
                 {/* Node cards */}
                 {nodes.map((node) => {
-                    const birthYear = new Date(node.profile.dateOfBirth).getFullYear();
+                    const birthYear = node.profile.dateOfBirth ? new Date(node.profile.dateOfBirth).getFullYear() : '?';
                     const deathYear = node.profile.dateOfDeath
                         ? new Date(node.profile.dateOfDeath).getFullYear()
                         : null;

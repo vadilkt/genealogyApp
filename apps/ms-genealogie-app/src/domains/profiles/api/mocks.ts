@@ -19,6 +19,8 @@ export const mockProfile: Profile = {
     deathPlace: null,
     professionalRecords: [],
     academicRecords: [],
+    createdAt: null,
+    updatedAt: null,
 };
 
 export const mockProfiles: Profile[] = [
@@ -42,6 +44,8 @@ export const mockProfiles: Profile[] = [
         deathPlace: null,
         professionalRecords: [],
         academicRecords: [],
+        createdAt: null,
+        updatedAt: null,
     },
 ];
 

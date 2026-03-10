@@ -1,7 +1,7 @@
 import type { Profile } from '../types';
 
 export const sortProfilesByName = (profiles: Profile[]): Profile[] => {
-    return [...profiles].sort((a, b) => a.lastName.localeCompare(b.lastName));
+    return [...profiles].sort((a, b) => (a.lastName ?? '').localeCompare(b.lastName ?? ''));
 };
 
 export const filterProfilesByGender = (profiles: Profile[], gender: string): Profile[] => {
@@ -9,7 +9,7 @@ export const filterProfilesByGender = (profiles: Profile[], gender: string): Pro
 };
 
 export const getFullName = (profile: Profile): string => {
-    return `${profile.firstName} ${profile.lastName}`;
+    return [profile.firstName, profile.lastName].filter(Boolean).join(' ');
 };
 
 export const isDeceased = (profile: Profile): boolean => {

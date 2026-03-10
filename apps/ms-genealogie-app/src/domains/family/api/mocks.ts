@@ -15,6 +15,8 @@ const baseProfile: Profile = {
     deathPlace: null,
     professionalRecords: [],
     academicRecords: [],
+    createdAt: null,
+    updatedAt: null,
 };
 
 const fatherProfile: Profile = {
