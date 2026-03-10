@@ -32,6 +32,7 @@ interface EdgeLayout {
     y1: number;
     x2: number;
     y2: number;
+    marriage?: boolean;
 }
 
 interface GlobalLayout {
@@ -103,8 +104,8 @@ function computeGenerations(nodes: ProfileNode[]): Map<number, number> {
 
 // ─── Global layout ─────────────────────────────────────────────────────────────
 // Each generation occupies one horizontal row.
-// Nodes within a row are ordered by average parent position to keep
-// children roughly below their parents and minimise edge crossings.
+// Couples (sharing at least one child) are guaranteed to be adjacent
+// by giving them the same sort key (midpoint of their individual avgParentPos).
 // Each row is centered in the overall canvas width.
 function buildGlobalLayout(nodes: ProfileNode[]): GlobalLayout {
     if (!nodes.length) return { nodes: [], edges: [], w: 600, h: 300 };
@@ -121,16 +122,33 @@ function buildGlobalLayout(nodes: ProfileNode[]): GlobalLayout {
         byGen.get(g)!.push(n);
     });
 
-    // For each generation, sort by average parent position (already sorted
-    // generations above provide stable parent positions) then alphabetically.
-    const posInGen = new Map<number, number>(); // id → index within row
+    // Identify couples: two people are a couple when they share at least one child
+    // AND they ended up in the same generation after convergence.
+    const coupleOf = new Map<number, number>(); // id → partner id
+    nodes.forEach((child) => {
+        if (!child.fatherId || !child.motherId) return;
+        if (!byId.has(child.fatherId) || !byId.has(child.motherId)) return;
+        const fg = genMap.get(child.fatherId);
+        const mg = genMap.get(child.motherId);
+        if (fg === undefined || mg === undefined || fg !== mg) return;
+        coupleOf.set(child.fatherId, child.motherId);
+        coupleOf.set(child.motherId, child.fatherId);
+    });
+
+    // Sort each generation.
+    // Couples share the same sort key (average of both partners' avgParentPos)
+    // so they are guaranteed to land next to each other.
+    // Within a couple, husband (MALE) comes before wife.
+    const posInGen = new Map<number, number>();
 
     for (let g = 0; g <= maxGen; g++) {
         const row = byGen.get(g) ?? [];
         row.sort((a, b) => {
-            const pa = avgParentPos(a, posInGen, byId);
-            const pb = avgParentPos(b, posInGen, byId);
+            const pa = coupleAwarePos(a, coupleOf, posInGen, byId);
+            const pb = coupleAwarePos(b, coupleOf, posInGen, byId);
             if (pa !== pb) return pa - pb;
+            // Keep couple members adjacent: husband first
+            if (coupleOf.get(a.id) === b.id) return a.gender === 'MALE' ? -1 : 1;
             return (a.lastName ?? '').localeCompare(b.lastName ?? '');
         });
         row.forEach((n, i) => posInGen.set(n.id, i));
@@ -170,6 +188,26 @@ function buildGlobalLayout(nodes: ProfileNode[]): GlobalLayout {
         });
     });
 
+    // Marriage edges: horizontal dashed line between adjacent couples
+    const drawnCouples = new Set<string>();
+    coupleOf.forEach((partnerId, id) => {
+        const key = `${Math.min(id, partnerId)}-${Math.max(id, partnerId)}`;
+        if (drawnCouples.has(key)) return;
+        drawnCouples.add(key);
+        const a = nodePixels.get(id);
+        const b = nodePixels.get(partnerId);
+        if (!a || !b) return;
+        const left = a.x < b.x ? a : b;
+        const right = a.x < b.x ? b : a;
+        edges.push({
+            x1: left.x + NW,
+            y1: left.y + NH / 2,
+            x2: right.x,
+            y2: right.y + NH / 2,
+            marriage: true,
+        });
+    });
+
     return {
         nodes: layoutNodes,
         edges,
@@ -188,6 +226,21 @@ function avgParentPos(
     );
     if (!pids.length) return 0;
     return pids.reduce((s, pid) => s + posInGen.get(pid)!, 0) / pids.length;
+}
+
+// Sort key for a node that belongs to a couple: use the midpoint of both
+// partners' avgParentPos so they sort together.
+function coupleAwarePos(
+    n: ProfileNode,
+    coupleOf: Map<number, number>,
+    posInGen: Map<number, number>,
+    byId: Map<number, ProfileNode>,
+): number {
+    const myPos = avgParentPos(n, posInGen, byId);
+    const partnerId = coupleOf.get(n.id);
+    if (!partnerId || !byId.has(partnerId)) return myPos;
+    const partnerPos = avgParentPos(byId.get(partnerId)!, posInGen, byId);
+    return (myPos + partnerPos) / 2;
 }
 
 // ─── SVG Export ───────────────────────────────────────────────────────────────
@@ -216,6 +269,9 @@ function exportGlobalTreeAsSvg(layout: GlobalLayout, filename: string) {
     }).join('');
 
     const paths = layout.edges.map((e) => {
+        if (e.marriage) {
+            return `<line x1="${e.x1}" y1="${e.y1}" x2="${e.x2}" y2="${e.y2}" stroke="#e879a8" stroke-width="2" stroke-dasharray="5,3" stroke-opacity="0.7"/>`;
+        }
         const midY = (e.y1 + e.y2) / 2;
         return `<path d="M ${e.x1},${e.y1} C ${e.x1},${midY} ${e.x2},${midY} ${e.x2},${e.y2}"
       fill="none" stroke="${EDGE_COLOR}" stroke-width="1.5"/>`;
@@ -258,6 +314,18 @@ const SvgGlobalTree = ({ layout, matchedIds, focusId }: SvgGlobalTreeProps) => {
                     style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none' }}
                 >
                     {layout.edges.map((e, i) => {
+                        if (e.marriage) {
+                            return (
+                                <line
+                                    key={i}
+                                    x1={e.x1} y1={e.y1} x2={e.x2} y2={e.y2}
+                                    stroke="#e879a8"
+                                    strokeWidth={2}
+                                    strokeDasharray="5,3"
+                                    strokeOpacity={0.7}
+                                />
+                            );
+                        }
                         const midY = (e.y1 + e.y2) / 2;
                         const d = `M ${e.x1},${e.y1} C ${e.x1},${midY} ${e.x2},${midY} ${e.x2},${e.y2}`;
                         return (
