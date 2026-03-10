@@ -1,4 +1,4 @@
-import { ApartmentOutlined, ArrowLeftOutlined } from '@ant-design/icons';
+import { ApartmentOutlined, ArrowLeftOutlined, DownloadOutlined } from '@ant-design/icons';
 import { Button, Card, Empty, Select, Space, Spin, Tabs, Tag, Typography } from 'antd';
 import type { NextPage } from 'next';
 import { useRouter } from 'next/router';
@@ -316,6 +316,55 @@ const SvgTree = ({ nodes, edges, w, h }: TreeLayout) => {
     );
 };
 
+// ─── SVG Export ───────────────────────────────────────────────────────────────
+function exportTreeAsSvg(layout: TreeLayout, filename: string) {
+    const FONT = 'system-ui, sans-serif';
+    const MALE_COLOR = '#3b82f6';
+    const FEMALE_COLOR = '#ec4899';
+    const NODE_BG = '#fffaf3';
+    const NODE_BORDER = '#edd9bc';
+    const EDGE_COLOR = '#c4956a';
+
+    const rects = layout.nodes.map((node) => {
+        const genderColor = node.profile.gender === 'MALE' ? MALE_COLOR : FEMALE_COLOR;
+        const birthYear = node.profile.dateOfBirth ? new Date(node.profile.dateOfBirth).getFullYear() : '?';
+        const deathYear = node.profile.dateOfDeath ? new Date(node.profile.dateOfDeath).getFullYear() : null;
+        const dates = deathYear ? `${birthYear} – ${deathYear}` : String(birthYear);
+        const name = [node.profile.firstName, node.profile.lastName].filter(Boolean).join(' ') || '?';
+
+        return `
+  <rect x="${node.x}" y="${node.y}" width="${NW}" height="${NH}" rx="8"
+        fill="${NODE_BG}" stroke="${NODE_BORDER}" stroke-width="1"/>
+  <rect x="${node.x}" y="${node.y}" width="${NW}" height="4" rx="4"
+        fill="${genderColor}"/>
+  <text x="${node.x + NW / 2}" y="${node.y + 28}" text-anchor="middle"
+        font-family="${FONT}" font-size="12" font-weight="600" fill="#1a0d06">${name}</text>
+  <text x="${node.x + NW / 2}" y="${node.y + 48}" text-anchor="middle"
+        font-family="${FONT}" font-size="11" fill="#888">${dates}</text>`;
+    }).join('');
+
+    const paths = layout.edges.map((e) => {
+        const midY = (e.y1 + e.y2) / 2;
+        const d = `M ${e.x1},${e.y1} C ${e.x1},${midY} ${e.x2},${midY} ${e.x2},${e.y2}`;
+        return `<path d="${d}" fill="none" stroke="${EDGE_COLOR}" stroke-width="1.5"${e.dashed ? ' stroke-dasharray="8,4"' : ''}/>`;
+    }).join('');
+
+    const svg = `<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="${layout.w}" height="${layout.h}">
+  <rect width="${layout.w}" height="${layout.h}" fill="#fdf4e8"/>
+  ${paths}
+  ${rects}
+</svg>`;
+
+    const blob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
 // ─── Count helpers ────────────────────────────────────────────────────────────
 const countAncestors = (node: AncestorNode | null): number => {
     if (!node) return 0;
@@ -337,6 +386,7 @@ const TreeContent = () => {
     const id = Number(router.query.id);
     const [depth, setDepth] = useState(4);
 
+    const [activeTab, setActiveTab] = useState<string>('ancestors');
     const { data: profile } = useProfile(id);
     const { data: ancestors, isLoading: loadingAncestors } = useAncestors(id, depth);
     const { data: descendants, isLoading: loadingDescendants } = useDescendants(id, depth);
@@ -439,11 +489,23 @@ const TreeContent = () => {
                         options={DEPTH_OPTIONS}
                         style={{ width: 160 }}
                     />
+                    <Button
+                        icon={<DownloadOutlined />}
+                        onClick={() => {
+                            const layout = activeTab === 'ancestors' ? ancestorLayout : descendantLayout;
+                            if (!layout) return;
+                            const name = profile ? `${profile.firstName ?? ''}-${profile.lastName ?? ''}`.trim() : `profil-${id}`;
+                            exportTreeAsSvg(layout, `arbre-${activeTab === 'ancestors' ? 'ancetres' : 'descendants'}-${name}.svg`);
+                        }}
+                        disabled={activeTab === 'ancestors' ? !ancestorLayout : !descendantLayout}
+                    >
+                        Exporter SVG
+                    </Button>
                 </Space>
             </div>
 
             <Card style={{ borderRadius: 12 }}>
-                <Tabs items={tabs} defaultActiveKey="ancestors" size="large" />
+                <Tabs items={tabs} defaultActiveKey="ancestors" activeKey={activeTab} onChange={setActiveTab} size="large" />
             </Card>
         </div>
     );
