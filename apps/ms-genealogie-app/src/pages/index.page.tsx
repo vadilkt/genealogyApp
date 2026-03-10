@@ -29,7 +29,7 @@ import { ProtectedRoute } from '@/components/ProtectedRoute';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { DEFAULT_PAGE_SIZE } from '@/consts';
 import type { Profile } from '@/domains/profiles/types';
-import { useSearchProfiles, useDeleteProfile } from '@/domains/profiles/useProfiles';
+import { useSearchProfiles, useDeleteProfile, useOrphanProfiles } from '@/domains/profiles/useProfiles';
 import { formatDateShort } from '@/utils/formatDate';
 
 const { Title, Text } = Typography;
@@ -42,6 +42,7 @@ const DashboardContent = () => {
 
     const { data: profiles = [], isFetching, refetch } = useSearchProfiles(keyword || undefined);
     const { mutate: deleteProfile, isPending: isDeleting } = useDeleteProfile();
+    const { data: orphans = [] } = useOrphanProfiles();
 
     const handleSearch = useCallback(() => {
         setKeyword(searchValue.trim());
@@ -204,35 +205,54 @@ const DashboardContent = () => {
 
             {/* Statistiques rapides (admin) */}
             {isAdmin && (
-                <div style={{ display: 'flex', gap: 16, marginBottom: 24 }}>
-                    <Card size="small" style={{ flex: 1 }}>
-                        <Statistic
-                            title="Total"
-                            value={profiles.length}
-                            prefix={<TeamOutlined />}
+                <>
+                    <div style={{ display: 'flex', gap: 16, marginBottom: 16 }}>
+                        <Card size="small" style={{ flex: 1 }}>
+                            <Statistic
+                                title="Total"
+                                value={profiles.length}
+                                prefix={<TeamOutlined />}
+                            />
+                        </Card>
+                        <Card size="small" style={{ flex: 1 }}>
+                            <Statistic
+                                title="Vivants"
+                                value={activeProfiles.length}
+                                valueStyle={{ color: '#52c41a' }}
+                            />
+                        </Card>
+                        <Card size="small" style={{ flex: 1 }}>
+                            <Statistic
+                                title="Décédés"
+                                value={deceasedProfiles.length}
+                                valueStyle={{ color: '#8c8c8c' }}
+                            />
+                        </Card>
+                        <Card size="small" style={{ flex: 1 }}>
+                            <Statistic
+                                title="Sans compte"
+                                value={orphans.length}
+                                valueStyle={{ color: orphans.length > 0 ? '#fa8c16' : '#8c8c8c' }}
+                                prefix={<UserOutlined />}
+                            />
+                        </Card>
+                    </div>
+                    {orphans.length > 0 && (
+                        <Alert
+                            message={`${orphans.length} profil${orphans.length > 1 ? 's' : ''} sans compte lié`}
+                            description="Ces profils n'ont pas de compte utilisateur associé. Assignez-leur un compte depuis leur page de détail."
+                            type="warning"
+                            showIcon
+                            style={{ marginBottom: 16 }}
                         />
-                    </Card>
-                    <Card size="small" style={{ flex: 1 }}>
-                        <Statistic
-                            title="Vivants"
-                            value={activeProfiles.length}
-                            valueStyle={{ color: '#52c41a' }}
-                        />
-                    </Card>
-                    <Card size="small" style={{ flex: 1 }}>
-                        <Statistic
-                            title="Décédés"
-                            value={deceasedProfiles.length}
-                            valueStyle={{ color: '#8c8c8c' }}
-                        />
-                    </Card>
-                </div>
+                    )}
+                </>
             )}
 
             {/* Barre de recherche */}
             <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
                 <Input
-                    placeholder="Rechercher par nom, prénom..."
+                    placeholder="Rechercher par nom, prénom, lieu de naissance, résidence..."
                     prefix={<SearchOutlined />}
                     value={searchValue}
                     onChange={(e) => setSearchValue(e.target.value)}
