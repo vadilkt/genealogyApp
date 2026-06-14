@@ -15,6 +15,7 @@ import {
     message,
 } from 'antd';
 import dayjs from 'dayjs';
+import { useTranslation } from 'next-i18next';
 import { useState } from 'react';
 
 import { useAuthContext } from '@/contexts/AuthContext';
@@ -39,6 +40,7 @@ interface AcademicFormValues {
 }
 
 export const AcademicTab = ({ profileId, isOwnProfile }: { profileId: number; isOwnProfile: boolean }) => {
+    const { t } = useTranslation('common');
     const { isAdmin } = useAuthContext();
     const canEdit = isAdmin || isOwnProfile;
     const [messageApi, contextHolder] = message.useMessage();
@@ -83,12 +85,12 @@ export const AcademicTab = ({ profileId, isOwnProfile }: { profileId: number; is
         if (editing) {
             update(
                 { academicId: editing.id, payload },
-                { onSuccess: () => { messageApi.success('Mis à jour'); setModalOpen(false); } },
+                { onSuccess: () => { messageApi.success(t('common.updated')); setModalOpen(false); } },
             );
         } else {
             create(
                 { profileId, payload },
-                { onSuccess: () => { messageApi.success('Ajouté'); setModalOpen(false); } },
+                { onSuccess: () => { messageApi.success(t('common.added')); setModalOpen(false); } },
             );
         }
     };
@@ -98,17 +100,17 @@ export const AcademicTab = ({ profileId, isOwnProfile }: { profileId: number; is
             {contextHolder}
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
                 <Title level={5} style={{ margin: 0 }}>
-                    {isLoading ? 'Chargement...' : `Parcours académique (${records.length})`}
+                    {isLoading ? t('common.loading') : t('academic.title', { count: records.length })}
                 </Title>
                 {canEdit && (
                     <Button type="primary" icon={<PlusOutlined />} onClick={openCreate} size="small">
-                        Ajouter
+                        {t('common.add')}
                     </Button>
                 )}
             </div>
 
             {records.length === 0 ? (
-                <Empty description="Aucun parcours académique enregistré" />
+                <Empty description={t('academic.noRecord')} />
             ) : (
                 <List
                     dataSource={records}
@@ -119,21 +121,21 @@ export const AcademicTab = ({ profileId, isOwnProfile }: { profileId: number; is
                                 canEdit
                                     ? [
                                           <Button key="edit" type="link" icon={<EditOutlined />} onClick={() => openEdit(item)}>
-                                              Modifier
+                                              {t('common.edit')}
                                           </Button>,
                                           <Popconfirm
                                               key="delete"
-                                              title="Supprimer ce parcours ?"
+                                              title={t('academic.deleteConfirm')}
                                               onConfirm={() =>
                                                   remove(item.id, {
-                                                      onSuccess: () => messageApi.success('Supprimé'),
+                                                      onSuccess: () => messageApi.success(t('common.deleted')),
                                                   })
                                               }
-                                              okText="Supprimer"
-                                              cancelText="Annuler"
+                                              okText={t('common.delete')}
+                                              cancelText={t('common.cancel')}
                                           >
                                               <Button type="link" danger icon={<DeleteOutlined />}>
-                                                  Supprimer
+                                                  {t('common.delete')}
                                               </Button>
                                           </Popconfirm>,
                                       ]
@@ -152,9 +154,9 @@ export const AcademicTab = ({ profileId, isOwnProfile }: { profileId: number; is
                                     <Space direction="vertical" size={0}>
                                         <Text>{item.institution}</Text>
                                         <Text type="secondary">
-                                            {formatDate(item.startDate)} → {item.endDate ? formatDate(item.endDate) : 'En cours'}
+                                            {formatDate(item.startDate)} → {item.endDate ? formatDate(item.endDate) : t('common.ongoing')}
                                         </Text>
-                                        {item.grade && <Tag color="gold">Mention : {item.grade}</Tag>}
+                                        {item.grade && <Tag color="gold">{t('academic.gradeTag', { grade: item.grade })}</Tag>}
                                     </Space>
                                 }
                             />
@@ -164,37 +166,37 @@ export const AcademicTab = ({ profileId, isOwnProfile }: { profileId: number; is
             )}
 
             <Modal
-                title={editing ? 'Modifier le parcours' : 'Ajouter un parcours académique'}
+                title={editing ? t('academic.editTitle') : t('academic.addTitle')}
                 open={modalOpen}
                 onCancel={() => setModalOpen(false)}
                 footer={null}
                 destroyOnClose
             >
                 <Form form={form} layout="vertical" onFinish={handleSubmit}>
-                    <Form.Item name="institution" label="Établissement" rules={[{ required: true }]}>
+                    <Form.Item name="institution" label={t('academic.institution')} rules={[{ required: true }]}>
                         <Input />
                     </Form.Item>
-                    <Form.Item name="degree" label="Diplôme" rules={[{ required: true }]}>
+                    <Form.Item name="degree" label={t('academic.degree')} rules={[{ required: true }]}>
                         <Input />
                     </Form.Item>
-                    <Form.Item name="fieldOfStudy" label="Domaine d'études" rules={[{ required: true }]}>
+                    <Form.Item name="fieldOfStudy" label={t('academic.fieldOfStudy')} rules={[{ required: true }]}>
                         <Input />
                     </Form.Item>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 12px' }}>
-                        <Form.Item name="startDate" label="Début" rules={[{ required: true }]}>
+                        <Form.Item name="startDate" label={t('academic.start')} rules={[{ required: true }]}>
                             <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" />
                         </Form.Item>
-                        <Form.Item name="endDate" label="Fin">
-                            <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" placeholder="En cours" />
+                        <Form.Item name="endDate" label={t('academic.end')}>
+                            <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" placeholder={t('common.ongoing')} />
                         </Form.Item>
                     </div>
-                    <Form.Item name="grade" label="Mention / Note">
-                        <Input placeholder="ex: Très Bien, 16/20..." />
+                    <Form.Item name="grade" label={t('academic.grade')}>
+                        <Input placeholder={t('academic.gradePlaceholder')} />
                     </Form.Item>
                     <Space>
-                        <Button onClick={() => setModalOpen(false)}>Annuler</Button>
+                        <Button onClick={() => setModalOpen(false)}>{t('common.cancel')}</Button>
                         <Button type="primary" htmlType="submit" loading={creating || updating}>
-                            {editing ? 'Mettre à jour' : 'Ajouter'}
+                            {editing ? t('common.update') : t('common.add')}
                         </Button>
                     </Space>
                 </Form>

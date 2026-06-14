@@ -1,6 +1,7 @@
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { Alert, Button, Card, Form, Input, Space, Typography } from 'antd';
 import type { NextPage } from 'next';
+import { useTranslation } from 'next-i18next';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 
@@ -22,6 +23,7 @@ const CARD_STYLE = {
 const CARD_BODY_STYLE = { padding: '32px 28px' };
 
 const LoginPage: NextPage = () => {
+    const { t } = useTranslation('common');
     const { isAuthenticated, setAuth } = useAuthContext();
     const router = useRouter();
     const { mutate: login, isPending, error } = useLogin();
@@ -53,15 +55,15 @@ const LoginPage: NextPage = () => {
                 <Space direction="vertical" size={24} style={{ width: '100%' }}>
                     <div className={styles.header}>
                         <Title level={2} style={{ marginBottom: 4 }}>
-                            MS Généalogie
+                            {t('appName')}
                         </Title>
-                        <Text type="secondary">Connectez-vous à votre compte</Text>
+                        <Text type="secondary">{t('auth.loginSubtitle')}</Text>
                     </div>
 
                     {!!error && (
                         <Alert
-                            message="Identifiants invalides"
-                            description="Vérifiez votre nom d'utilisateur et votre mot de passe."
+                            message={t('auth.loginError')}
+                            description={t('auth.loginErrorDesc')}
                             type="error"
                             showIcon
                         />
@@ -70,18 +72,18 @@ const LoginPage: NextPage = () => {
                     <Form layout="vertical" onFinish={onFinish} size="large">
                         <Form.Item
                             name="username"
-                            label="Nom d'utilisateur"
-                            rules={[{ required: true, message: "Le nom d'utilisateur est requis" }]}
+                            label={t('auth.username')}
+                            rules={[{ required: true, message: t('auth.usernameRequired') }]}
                         >
-                            <Input prefix={<UserOutlined />} placeholder="Votre identifiant" />
+                            <Input prefix={<UserOutlined />} placeholder={t('auth.usernamePlaceholder')} />
                         </Form.Item>
 
                         <Form.Item
                             name="password"
-                            label="Mot de passe"
-                            rules={[{ required: true, message: 'Le mot de passe est requis' }]}
+                            label={t('auth.password')}
+                            rules={[{ required: true, message: t('auth.passwordRequired') }]}
                         >
-                            <Input.Password prefix={<LockOutlined />} placeholder="Votre mot de passe" />
+                            <Input.Password prefix={<LockOutlined />} placeholder={t('auth.passwordPlaceholder')} />
                         </Form.Item>
 
                         <Form.Item style={{ marginBottom: 12 }}>
@@ -92,14 +94,14 @@ const LoginPage: NextPage = () => {
                                 block
                                 className={styles.submitButton}
                             >
-                                Se connecter
+                                {t('auth.signIn')}
                             </Button>
                         </Form.Item>
 
                         <div className={styles.footer}>
-                            <Text type="secondary">Pas encore de compte ?&nbsp;</Text>
+                            <Text type="secondary">{t('auth.noAccount')}&nbsp;</Text>
                             <Button type="link" style={{ padding: 0 }} onClick={() => router.push('/register')}>
-                                {"S'inscrire"}
+                                {t('auth.signUp')}
                             </Button>
                         </div>
                     </Form>

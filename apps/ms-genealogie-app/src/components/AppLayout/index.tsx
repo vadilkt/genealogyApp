@@ -14,10 +14,13 @@ import { Badge, Dropdown, Layout, Menu, Avatar, Typography, Button, Space, Tag, 
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/fr';
+import 'dayjs/locale/en';
+import { useTranslation } from 'next-i18next';
 import { useRouter } from 'next/router';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
 
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { useAuthContext } from '@/contexts/AuthContext';
 import { useMyProfile } from '@/domains/profiles/useProfiles';
 import { useMarkAllRead, useNotifications, useUnreadCount } from '@/domains/notifications/useNotifications';
@@ -25,7 +28,6 @@ import { useMarkAllRead, useNotifications, useUnreadCount } from '@/domains/noti
 import styles from './AppLayout.module.scss';
 
 dayjs.extend(relativeTime);
-dayjs.locale('fr');
 
 const { Header, Sider, Content } = Layout;
 const { Text } = Typography;
@@ -35,6 +37,7 @@ interface AppLayoutProps {
 }
 
 export const AppLayout = ({ children }: AppLayoutProps) => {
+    const { t } = useTranslation('common');
     const { user, isAdmin, clearAuth } = useAuthContext();
     const router = useRouter();
     const [siderCollapsed, setSiderCollapsed] = useState(false);
@@ -60,13 +63,13 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
         {
             key: '/',
             icon: <TeamOutlined />,
-            label: isAdmin ? 'Gestion des Profils' : 'Liste des Profils',
+            label: isAdmin ? t('nav.profilesAdmin') : t('nav.profilesList'),
             onClick: () => router.push('/'),
         },
         {
             key: '/tree',
             icon: <ApartmentOutlined />,
-            label: 'Arbre global',
+            label: t('nav.globalTree'),
             onClick: () => router.push('/tree'),
         },
         ...(!isAdmin
@@ -78,7 +81,11 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
                               : `/profiles/${myProfile.id}`
                           : '/profiles/new',
                       icon: <UserOutlined />,
-                      label: isProfileEmpty ? 'Compléter mon profil' : myProfile ? 'Mon Profil' : 'Créer mon profil',
+                      label: isProfileEmpty
+                          ? t('nav.completeMyProfile')
+                          : myProfile
+                              ? t('nav.myProfile')
+                              : t('nav.createMyProfile'),
                       onClick: handleAvatarClick,
                   },
               ]
@@ -88,7 +95,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
                   {
                       key: '/profiles/new',
                       icon: <PlusOutlined />,
-                      label: 'Nouveau Profil',
+                      label: t('nav.newProfile'),
                       onClick: () => router.push('/profiles/new'),
                   },
                   {
@@ -97,18 +104,18 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
                   {
                       key: 'admin-group',
                       icon: <SafetyOutlined />,
-                      label: 'Administration',
+                      label: t('nav.administration'),
                       children: [
                           {
                               key: '/admin/users',
                               icon: <UsergroupAddOutlined />,
-                              label: 'Gérer les Utilisateurs',
+                              label: t('nav.manageUsers'),
                               onClick: () => router.push('/admin/users'),
                           },
                           {
                               key: '/admin/places',
                               icon: <EnvironmentOutlined />,
-                              label: 'Gérer les Lieux',
+                              label: t('nav.managePlaces'),
                               onClick: () => router.push('/admin/places'),
                           },
                       ],
@@ -143,8 +150,8 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
                 style={{ background: 'linear-gradient(180deg, #2d1a0e 0%, #1a0d06 100%)' }}
             >
                 <div className={styles.logo}>
-                    <Text className={styles.logoTitle}>MS Généalogie</Text>
-                    <Text className={styles.logoSubtitle}>Gestion familiale</Text>
+                    <Text className={styles.logoTitle}>{t('appName')}</Text>
+                    <Text className={styles.logoSubtitle}>{t('tagline')}</Text>
                 </div>
                 <Menu
                     theme="dark"
@@ -163,7 +170,7 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
                         icon={<MenuOutlined />}
                         onClick={() => setSiderCollapsed((v) => !v)}
                         className={styles.hamburger}
-                        aria-label="Ouvrir/fermer le menu"
+                        aria-label={t('nav.toggleMenu')}
                     />
                     <Space size={16} align="center">
                         <Avatar
@@ -189,10 +196,10 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
                             dropdownRender={() => (
                                 <div style={{ background: '#fff', borderRadius: 8, boxShadow: '0 4px 16px rgba(0,0,0,0.12)', width: 340, maxHeight: 400, overflow: 'auto' }}>
                                     <div style={{ padding: '12px 16px', borderBottom: '1px solid #f0f0f0', fontWeight: 600 }}>
-                                        Notifications
+                                        {t('nav.notifications')}
                                     </div>
                                     {notifications.length === 0 ? (
-                                        <div style={{ padding: '32px 16px', color: '#999', textAlign: 'center' }}>Aucune notification</div>
+                                        <div style={{ padding: '32px 16px', color: '#999', textAlign: 'center' }}>{t('nav.noNotifications')}</div>
                                     ) : (
                                         <List
                                             dataSource={notifications}
@@ -211,13 +218,14 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
                                 <Button type="text" icon={<BellOutlined />} style={{ color: '#888' }} />
                             </Badge>
                         </Dropdown>
+                        <LanguageSwitcher />
                         <Button
                             type="text"
                             icon={<LogoutOutlined />}
                             onClick={handleLogout}
                             style={{ color: '#888' }}
                         >
-                            Déconnexion
+                            {t('common.logout')}
                         </Button>
                     </Space>
                 </Header>

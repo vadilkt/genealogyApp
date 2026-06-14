@@ -1,6 +1,7 @@
 import { LockOutlined, MailOutlined, UserOutlined } from '@ant-design/icons';
 import { Alert, Button, Card, Form, Input, Space, Typography, message } from 'antd';
 import type { NextPage } from 'next';
+import { useTranslation } from 'next-i18next';
 import { useRouter } from 'next/router';
 
 import { UserRole } from '@/domains/auth/types';
@@ -22,6 +23,7 @@ const CARD_STYLE = {
 const CARD_BODY_STYLE = { padding: '32px 28px' };
 
 const RegisterPage: NextPage = () => {
+    const { t } = useTranslation('common');
     const router = useRouter();
     const { mutate: register, isPending, error } = useRegister();
     const [messageApi, contextHolder] = message.useMessage();
@@ -31,7 +33,7 @@ const RegisterPage: NextPage = () => {
             { ...values, role: UserRole.USER },
             {
                 onSuccess: () => {
-                    messageApi.success('Compte créé avec succès !');
+                    messageApi.success(t('auth.accountCreated'));
                     setTimeout(() => router.push('/login'), REDIRECT_DELAY_MS);
                 },
             },
@@ -45,15 +47,15 @@ const RegisterPage: NextPage = () => {
                 <Space direction="vertical" size={24} style={{ width: '100%' }}>
                     <div className={styles.header}>
                         <Title level={2} style={{ marginBottom: 4 }}>
-                            Créer un compte
+                            {t('auth.registerTitle')}
                         </Title>
-                        <Text type="secondary">MS Généalogie — Inscription</Text>
+                        <Text type="secondary">{t('auth.registerSubtitle')}</Text>
                     </div>
 
                     {!!error && (
                         <Alert
-                            message="Erreur lors de l'inscription"
-                            description="Ce nom d'utilisateur est peut-être déjà pris."
+                            message={t('auth.registerError')}
+                            description={t('auth.registerErrorDesc')}
                             type="error"
                             showIcon
                         />
@@ -62,34 +64,34 @@ const RegisterPage: NextPage = () => {
                     <Form layout="vertical" onFinish={onFinish} size="large">
                         <Form.Item
                             name="username"
-                            label="Nom d'utilisateur"
-                            rules={[{ required: true, message: "Le nom d'utilisateur est requis" }]}
+                            label={t('auth.username')}
+                            rules={[{ required: true, message: t('auth.usernameRequired') }]}
                         >
-                            <Input prefix={<UserOutlined />} placeholder="Choisissez un identifiant" />
+                            <Input prefix={<UserOutlined />} placeholder={t('auth.usernamePlaceholderRegister')} />
                         </Form.Item>
 
                         <Form.Item
                             name="email"
-                            label="Email"
+                            label={t('auth.email')}
                             rules={[
-                                { required: true, message: "L'email est requis" },
-                                { type: 'email', message: 'Email invalide' },
+                                { required: true, message: t('auth.emailRequired') },
+                                { type: 'email', message: t('auth.emailInvalid') },
                             ]}
                         >
-                            <Input prefix={<MailOutlined />} placeholder="votre@email.com" />
+                            <Input prefix={<MailOutlined />} placeholder={t('auth.emailPlaceholder')} />
                         </Form.Item>
 
                         <Form.Item
                             name="password"
-                            label="Mot de passe"
+                            label={t('auth.password')}
                             rules={[
-                                { required: true, message: 'Le mot de passe est requis' },
-                                { min: 6, message: 'Minimum 6 caractères' },
+                                { required: true, message: t('auth.passwordRequired') },
+                                { min: 6, message: t('auth.passwordMin') },
                             ]}
                         >
                             <Input.Password
                                 prefix={<LockOutlined />}
-                                placeholder="Choisissez un mot de passe"
+                                placeholder={t('auth.passwordPlaceholderRegister')}
                             />
                         </Form.Item>
 
@@ -101,14 +103,14 @@ const RegisterPage: NextPage = () => {
                                 block
                                 className={styles.submitButton}
                             >
-                                Créer le compte
+                                {t('auth.createAccount')}
                             </Button>
                         </Form.Item>
 
                         <div className={styles.footer}>
-                            <Text type="secondary">Déjà un compte ?&nbsp;</Text>
+                            <Text type="secondary">{t('auth.haveAccount')}&nbsp;</Text>
                             <Button type="link" style={{ padding: 0 }} onClick={() => router.push('/login')}>
-                                Se connecter
+                                {t('auth.signIn')}
                             </Button>
                         </div>
                     </Form>

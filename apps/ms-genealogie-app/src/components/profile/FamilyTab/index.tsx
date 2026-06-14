@@ -16,6 +16,7 @@ import {
     message,
 } from 'antd';
 import dayjs from 'dayjs';
+import { useTranslation } from 'next-i18next';
 import { useRouter } from 'next/router';
 import { useState } from 'react';
 
@@ -36,6 +37,7 @@ import { formatDate } from '@/utils/formatDate';
 const { Title, Text } = Typography;
 
 export const FamilyTab = ({ profileId, isOwnProfile = false }: { profileId: number; isOwnProfile?: boolean }) => {
+    const { t } = useTranslation('common');
     const { isAdmin } = useAuthContext();
     const canEdit = isAdmin || isOwnProfile;
     const router = useRouter();
@@ -58,7 +60,7 @@ export const FamilyTab = ({ profileId, isOwnProfile = false }: { profileId: numb
         if (!fatherId) return;
         setFather(
             { profileId, payload: { parentProfileId: fatherId } },
-            { onSuccess: () => { messageApi.success('Père défini'); refetch(); setFatherId(undefined); } },
+            { onSuccess: () => { messageApi.success(t('family.fatherSet')); refetch(); setFatherId(undefined); } },
         );
     };
 
@@ -66,7 +68,7 @@ export const FamilyTab = ({ profileId, isOwnProfile = false }: { profileId: numb
         if (!motherId) return;
         setMother(
             { profileId, payload: { parentProfileId: motherId } },
-            { onSuccess: () => { messageApi.success('Mère définie'); refetch(); setMotherId(undefined); } },
+            { onSuccess: () => { messageApi.success(t('family.motherSet')); refetch(); setMotherId(undefined); } },
         );
     };
 
@@ -82,7 +84,7 @@ export const FamilyTab = ({ profileId, isOwnProfile = false }: { profileId: numb
             },
             {
                 onSuccess: () => {
-                    messageApi.success('Mariage enregistré');
+                    messageApi.success(t('family.marriageRecorded'));
                     refetch();
                     setSpouseId(undefined);
                     setMarriageDate(null);
@@ -101,33 +103,33 @@ export const FamilyTab = ({ profileId, isOwnProfile = false }: { profileId: numb
                 {/* Père */}
                 <Col xs={24} md={12}>
                     <Title level={5} style={{ marginBottom: 12 }}>
-                        <HomeOutlined /> Père
+                        <HomeOutlined /> {t('family.father')}
                     </Title>
                     {family.father ? (
                         <ProfileMemberCard
                             id={family.father.id}
                             name={`${family.father.firstName} ${family.father.lastName}`}
-                            label="Père"
+                            label={t('family.father')}
                             isAdmin={canEdit}
                             onRemove={() =>
                                 removeFather(profileId, {
-                                    onSuccess: () => { messageApi.success('Père retiré'); refetch(); },
+                                    onSuccess: () => { messageApi.success(t('family.fatherRemoved')); refetch(); },
                                 })
                             }
                         />
                     ) : (
-                        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Aucun père enregistré" />
+                        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('family.noFather')} />
                     )}
                     {canEdit && !family.father && (
                         <Space style={{ marginTop: 8 }}>
                             <ProfileSelect
                                 value={fatherId}
                                 onChange={setFatherId}
-                                placeholder="Choisir le père..."
+                                placeholder={t('family.chooseFather')}
                                 excludeId={profileId}
                             />
                             <Button type="primary" size="small" onClick={handleSetFather} disabled={!fatherId}>
-                                Définir
+                                {t('family.define')}
                             </Button>
                         </Space>
                     )}
@@ -136,33 +138,33 @@ export const FamilyTab = ({ profileId, isOwnProfile = false }: { profileId: numb
                 {/* Mère */}
                 <Col xs={24} md={12}>
                     <Title level={5} style={{ marginBottom: 12 }}>
-                        <HomeOutlined /> Mère
+                        <HomeOutlined /> {t('family.mother')}
                     </Title>
                     {family.mother ? (
                         <ProfileMemberCard
                             id={family.mother.id}
                             name={`${family.mother.firstName} ${family.mother.lastName}`}
-                            label="Mère"
+                            label={t('family.mother')}
                             isAdmin={canEdit}
                             onRemove={() =>
                                 removeMother(profileId, {
-                                    onSuccess: () => { messageApi.success('Mère retirée'); refetch(); },
+                                    onSuccess: () => { messageApi.success(t('family.motherRemoved')); refetch(); },
                                 })
                             }
                         />
                     ) : (
-                        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Aucune mère enregistrée" />
+                        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('family.noMother')} />
                     )}
                     {canEdit && !family.mother && (
                         <Space style={{ marginTop: 8 }}>
                             <ProfileSelect
                                 value={motherId}
                                 onChange={setMotherId}
-                                placeholder="Choisir la mère..."
+                                placeholder={t('family.chooseMother')}
                                 excludeId={profileId}
                             />
                             <Button type="primary" size="small" onClick={handleSetMother} disabled={!motherId}>
-                                Définir
+                                {t('family.define')}
                             </Button>
                         </Space>
                     )}
@@ -173,10 +175,10 @@ export const FamilyTab = ({ profileId, isOwnProfile = false }: { profileId: numb
 
             {/* Mariages */}
             <Title level={5}>
-                <HeartOutlined /> Mariages & Conjoint(e)s
+                <HeartOutlined /> {t('family.marriagesTitle')}
             </Title>
             {family.marriages.length === 0 && (
-                <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Aucun mariage enregistré" />
+                <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('family.noMarriage')} />
             )}
             {family.marriages.map((m) => {
                 const spouse = m.husbandId === profileId ? m.wife : m.husband;
@@ -196,24 +198,24 @@ export const FamilyTab = ({ profileId, isOwnProfile = false }: { profileId: numb
                             description={
                                 <Space>
                                     {m.marriageDate && (
-                                        <Text type="secondary">Marié(e) le {formatDate(m.marriageDate)}</Text>
+                                        <Text type="secondary">{t('family.marriedOn', { date: formatDate(m.marriageDate) })}</Text>
                                     )}
                                     {m.endDate && (
-                                        <Tag color="default">Terminé le {formatDate(m.endDate)}</Tag>
+                                        <Tag color="default">{t('family.endedOn', { date: formatDate(m.endDate) })}</Tag>
                                     )}
                                     {canEdit && (
                                         <Popconfirm
-                                            title="Supprimer ce mariage ?"
+                                            title={t('family.deleteMarriageConfirm')}
                                             onConfirm={() =>
                                                 removeMarriage(m.id, {
-                                                    onSuccess: () => { messageApi.success('Mariage supprimé'); refetch(); },
+                                                    onSuccess: () => { messageApi.success(t('family.marriageDeleted')); refetch(); },
                                                 })
                                             }
-                                            okText="Supprimer"
-                                            cancelText="Annuler"
+                                            okText={t('common.delete')}
+                                            cancelText={t('common.cancel')}
                                         >
                                             <Button type="link" size="small" danger icon={<DeleteOutlined />}>
-                                                Supprimer
+                                                {t('common.delete')}
                                             </Button>
                                         </Popconfirm>
                                     )}
@@ -228,11 +230,11 @@ export const FamilyTab = ({ profileId, isOwnProfile = false }: { profileId: numb
                     <ProfileSelect
                         value={spouseId}
                         onChange={setSpouseId}
-                        placeholder="Choisir le/la conjoint(e)..."
+                        placeholder={t('family.chooseSpouse')}
                         excludeId={profileId}
                     />
                     <DatePicker
-                        placeholder="Date de mariage (optionnel)"
+                        placeholder={t('family.marriageDatePlaceholder')}
                         format="DD/MM/YYYY"
                         value={marriageDate}
                         onChange={setMarriageDate}
@@ -243,7 +245,7 @@ export const FamilyTab = ({ profileId, isOwnProfile = false }: { profileId: numb
                         onClick={handleAddMarriage}
                         disabled={!spouseId}
                     >
-                        Ajouter mariage
+                        {t('family.addMarriage')}
                     </Button>
                 </Space>
             )}
@@ -251,9 +253,9 @@ export const FamilyTab = ({ profileId, isOwnProfile = false }: { profileId: numb
             <Divider />
 
             {/* Enfants */}
-            <Title level={5}>Enfants ({family.children.length})</Title>
+            <Title level={5}>{t('family.childrenTitle', { count: family.children.length })}</Title>
             {family.children.length === 0 ? (
-                <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Aucun enfant enregistré" />
+                <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('family.noChild')} />
             ) : (
                 <Row gutter={[8, 8]}>
                     {family.children.map((c) => (
@@ -261,7 +263,7 @@ export const FamilyTab = ({ profileId, isOwnProfile = false }: { profileId: numb
                             <ProfileMemberCard
                                 id={c.id}
                                 name={`${c.firstName} ${c.lastName}`}
-                                label="Enfant"
+                                label={t('family.child')}
                                 isAdmin={false}
                             />
                         </Col>
@@ -272,9 +274,9 @@ export const FamilyTab = ({ profileId, isOwnProfile = false }: { profileId: numb
             <Divider />
 
             {/* Frères & Sœurs */}
-            <Title level={5}>Frères & Sœurs ({family.siblings.length})</Title>
+            <Title level={5}>{t('family.siblingsTitle', { count: family.siblings.length })}</Title>
             {family.siblings.length === 0 ? (
-                <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Aucun frère/sœur enregistré" />
+                <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('family.noSibling')} />
             ) : (
                 <Row gutter={[8, 8]}>
                     {family.siblings.map((s) => (
@@ -282,7 +284,7 @@ export const FamilyTab = ({ profileId, isOwnProfile = false }: { profileId: numb
                             <ProfileMemberCard
                                 id={s.id}
                                 name={`${s.firstName} ${s.lastName}`}
-                                label="Frère/Sœur"
+                                label={t('family.sibling')}
                                 isAdmin={false}
                             />
                         </Col>

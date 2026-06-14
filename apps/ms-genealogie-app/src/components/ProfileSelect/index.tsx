@@ -1,4 +1,5 @@
 import { Select, Spin } from 'antd';
+import { useTranslation } from 'next-i18next';
 import { useState, useCallback } from 'react';
 
 import { useSearchProfiles } from '@/domains/profiles/useProfiles';
@@ -14,10 +15,11 @@ interface ProfileSelectProps {
 export const ProfileSelect = ({
     value,
     onChange,
-    placeholder = 'Rechercher un profil...',
+    placeholder,
     excludeId,
     disabled,
 }: ProfileSelectProps) => {
+    const { t } = useTranslation('common');
     const [keyword, setKeyword] = useState('');
     const { data: profiles = [], isFetching } = useSearchProfiles(keyword || undefined);
 
@@ -39,8 +41,8 @@ export const ProfileSelect = ({
             onChange={onChange}
             onSearch={handleSearch}
             filterOption={false}
-            placeholder={placeholder}
-            notFoundContent={isFetching ? <Spin size="small" /> : 'Aucun profil trouvé'}
+            placeholder={placeholder ?? t('profileSelect.placeholder')}
+            notFoundContent={isFetching ? <Spin size="small" /> : t('profileSelect.notFound')}
             options={options}
             style={{ width: '100%' }}
             disabled={disabled}

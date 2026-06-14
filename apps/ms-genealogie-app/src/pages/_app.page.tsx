@@ -1,15 +1,21 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ConfigProvider } from 'antd';
+import enUS from 'antd/locale/en_US';
 import frFR from 'antd/locale/fr_FR';
+import dayjs from 'dayjs';
+import 'dayjs/locale/en';
+import 'dayjs/locale/fr';
 import type { AppProps } from 'next/app';
-import { appWithTranslation } from 'next-i18next';
-import { useState } from 'react';
+import { appWithTranslation, useTranslation } from 'next-i18next';
+import { useEffect, useState } from 'react';
 
 import { AuthProvider } from '@/contexts/AuthContext';
+import { PREFERRED_LANG_KEY } from '@/components/LanguageSwitcher';
 
 import '@/styles/globals.scss';
 
 function App({ Component, pageProps }: AppProps) {
+    const { i18n } = useTranslation('common');
     const [queryClient] = useState(
         () =>
             new QueryClient({
@@ -23,10 +29,21 @@ function App({ Component, pageProps }: AppProps) {
             }),
     );
 
+    // Restaure la langue préférée de l'utilisateur (persistée par le sélecteur).
+    useEffect(() => {
+        const stored = typeof window !== 'undefined' ? localStorage.getItem(PREFERRED_LANG_KEY) : null;
+        if (stored && stored !== i18n.language) {
+            i18n.changeLanguage(stored);
+        }
+    }, [i18n]);
+
+    const isEnglish = (i18n.language ?? 'fr').startsWith('en');
+    dayjs.locale(isEnglish ? 'en' : 'fr');
+
     return (
         <QueryClientProvider client={queryClient}>
             <ConfigProvider
-                locale={frFR}
+                locale={isEnglish ? enUS : frFR}
                 theme={{
                     token: {
                         colorPrimary: '#e67e22',

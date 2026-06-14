@@ -15,6 +15,7 @@ import {
     message,
 } from 'antd';
 import dayjs from 'dayjs';
+import { useTranslation } from 'next-i18next';
 import { useState } from 'react';
 
 import { useAuthContext } from '@/contexts/AuthContext';
@@ -39,6 +40,7 @@ interface ProfessionalFormValues {
 }
 
 export const ProfessionalTab = ({ profileId, isOwnProfile }: { profileId: number; isOwnProfile: boolean }) => {
+    const { t } = useTranslation('common');
     const { isAdmin } = useAuthContext();
     const canEdit = isAdmin || isOwnProfile;
     const [messageApi, contextHolder] = message.useMessage();
@@ -83,12 +85,12 @@ export const ProfessionalTab = ({ profileId, isOwnProfile }: { profileId: number
         if (editing) {
             update(
                 { professionalId: editing.id, payload },
-                { onSuccess: () => { messageApi.success('Mis à jour'); setModalOpen(false); } },
+                { onSuccess: () => { messageApi.success(t('common.updated')); setModalOpen(false); } },
             );
         } else {
             create(
                 { profileId, payload },
-                { onSuccess: () => { messageApi.success('Ajouté'); setModalOpen(false); } },
+                { onSuccess: () => { messageApi.success(t('common.added')); setModalOpen(false); } },
             );
         }
     };
@@ -98,17 +100,17 @@ export const ProfessionalTab = ({ profileId, isOwnProfile }: { profileId: number
             {contextHolder}
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
                 <Title level={5} style={{ margin: 0 }}>
-                    {isLoading ? 'Chargement...' : `Expériences professionnelles (${records.length})`}
+                    {isLoading ? t('common.loading') : t('professional.title', { count: records.length })}
                 </Title>
                 {canEdit && (
                     <Button type="primary" icon={<PlusOutlined />} onClick={openCreate} size="small">
-                        Ajouter
+                        {t('common.add')}
                     </Button>
                 )}
             </div>
 
             {records.length === 0 ? (
-                <Empty description="Aucune expérience professionnelle enregistrée" />
+                <Empty description={t('professional.noRecord')} />
             ) : (
                 <List
                     dataSource={records}
@@ -119,21 +121,21 @@ export const ProfessionalTab = ({ profileId, isOwnProfile }: { profileId: number
                                 canEdit
                                     ? [
                                           <Button key="edit" type="link" icon={<EditOutlined />} onClick={() => openEdit(item)}>
-                                              Modifier
+                                              {t('common.edit')}
                                           </Button>,
                                           <Popconfirm
                                               key="delete"
-                                              title="Supprimer cette expérience ?"
+                                              title={t('professional.deleteConfirm')}
                                               onConfirm={() =>
                                                   remove(item.id, {
-                                                      onSuccess: () => messageApi.success('Supprimé'),
+                                                      onSuccess: () => messageApi.success(t('common.deleted')),
                                                   })
                                               }
-                                              okText="Supprimer"
-                                              cancelText="Annuler"
+                                              okText={t('common.delete')}
+                                              cancelText={t('common.cancel')}
                                           >
                                               <Button type="link" danger icon={<DeleteOutlined />}>
-                                                  Supprimer
+                                                  {t('common.delete')}
                                               </Button>
                                           </Popconfirm>,
                                       ]
@@ -152,7 +154,7 @@ export const ProfessionalTab = ({ profileId, isOwnProfile }: { profileId: number
                                 description={
                                     <Space direction="vertical" size={0}>
                                         <Text type="secondary">
-                                            {formatDate(item.dateDebut)} → {item.dateFin ? formatDate(item.dateFin) : 'Présent'}
+                                            {formatDate(item.dateDebut)} → {item.dateFin ? formatDate(item.dateFin) : t('common.present')}
                                         </Text>
                                         {item.description && <Text>{item.description}</Text>}
                                     </Space>
@@ -164,37 +166,37 @@ export const ProfessionalTab = ({ profileId, isOwnProfile }: { profileId: number
             )}
 
             <Modal
-                title={editing ? "Modifier l'expérience" : 'Ajouter une expérience'}
+                title={editing ? t('professional.editTitle') : t('professional.addTitle')}
                 open={modalOpen}
                 onCancel={() => setModalOpen(false)}
                 footer={null}
                 destroyOnClose
             >
                 <Form form={form} layout="vertical" onFinish={handleSubmit}>
-                    <Form.Item name="profession" label="Poste / Profession" rules={[{ required: true }]}>
+                    <Form.Item name="profession" label={t('professional.position')} rules={[{ required: true }]}>
                         <Input />
                     </Form.Item>
-                    <Form.Item name="entreprise" label="Entreprise" rules={[{ required: true }]}>
+                    <Form.Item name="entreprise" label={t('professional.company')} rules={[{ required: true }]}>
                         <Input />
                     </Form.Item>
-                    <Form.Item name="ville" label="Ville" rules={[{ required: true }]}>
+                    <Form.Item name="ville" label={t('professional.city')} rules={[{ required: true }]}>
                         <Input />
                     </Form.Item>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 12px' }}>
-                        <Form.Item name="dateDebut" label="Date de début" rules={[{ required: true }]}>
+                        <Form.Item name="dateDebut" label={t('professional.startDate')} rules={[{ required: true }]}>
                             <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" />
                         </Form.Item>
-                        <Form.Item name="dateFin" label="Date de fin">
-                            <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" placeholder="En cours" />
+                        <Form.Item name="dateFin" label={t('professional.endDate')}>
+                            <DatePicker style={{ width: '100%' }} format="DD/MM/YYYY" placeholder={t('common.ongoing')} />
                         </Form.Item>
                     </div>
-                    <Form.Item name="description" label="Description">
+                    <Form.Item name="description" label={t('professional.description')}>
                         <Input.TextArea rows={3} />
                     </Form.Item>
                     <Space>
-                        <Button onClick={() => setModalOpen(false)}>Annuler</Button>
+                        <Button onClick={() => setModalOpen(false)}>{t('common.cancel')}</Button>
                         <Button type="primary" htmlType="submit" loading={creating || updating}>
-                            {editing ? 'Mettre à jour' : 'Ajouter'}
+                            {editing ? t('common.update') : t('common.add')}
                         </Button>
                     </Space>
                 </Form>

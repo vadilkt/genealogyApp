@@ -13,6 +13,7 @@ import {
 } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import type { NextPage } from 'next';
+import { useTranslation } from 'next-i18next';
 import { useState } from 'react';
 
 import { ProtectedRoute } from '@/components/ProtectedRoute';
@@ -22,6 +23,7 @@ import { useChangePassword, useUsers } from '@/domains/users/useUsers';
 const { Title } = Typography;
 
 const AdminUsersPage: NextPage = () => {
+    const { t } = useTranslation('common');
     const { data: users = [], isLoading } = useUsers();
     const { mutate: changePassword, isPending } = useChangePassword();
     const [messageApi, contextHolder] = message.useMessage();
@@ -40,11 +42,11 @@ const AdminUsersPage: NextPage = () => {
                 { userId: selectedUser.id, newPassword },
                 {
                     onSuccess: () => {
-                        messageApi.success(`Mot de passe de "${selectedUser.username}" mis à jour`);
+                        messageApi.success(t('adminUsers.passwordUpdated', { user: selectedUser.username }));
                         setSelectedUser(null);
                     },
                     onError: () => {
-                        messageApi.error('Impossible de changer le mot de passe');
+                        messageApi.error(t('adminUsers.passwordError'));
                     },
                 },
             );
@@ -53,12 +55,12 @@ const AdminUsersPage: NextPage = () => {
 
     const columns: ColumnsType<AppUser> = [
         {
-            title: 'ID',
+            title: t('adminUsers.colId'),
             dataIndex: 'id',
             width: 60,
         },
         {
-            title: 'Utilisateur',
+            title: t('adminUsers.colUser'),
             dataIndex: 'username',
             render: (name: string) => (
                 <Space>
@@ -68,12 +70,12 @@ const AdminUsersPage: NextPage = () => {
             ),
         },
         {
-            title: 'Email',
+            title: t('adminUsers.colEmail'),
             dataIndex: 'email',
             render: (email: string | null) => email ?? <Tag color="default">—</Tag>,
         },
         {
-            title: 'Rôle',
+            title: t('adminUsers.colRole'),
             dataIndex: 'role',
             render: (role: string) =>
                 role === 'ADMIN' ? (
@@ -85,16 +87,16 @@ const AdminUsersPage: NextPage = () => {
                 ),
         },
         {
-            title: 'Actions',
+            title: t('adminUsers.colActions'),
             key: 'actions',
             render: (_: unknown, record: AppUser) => (
-                <Tooltip title="Réinitialiser le mot de passe">
+                <Tooltip title={t('adminUsers.resetTooltip')}>
                     <Button
                         icon={<KeyOutlined />}
                         size="small"
                         onClick={() => handleResetPassword(record)}
                     >
-                        Réinitialiser
+                        {t('adminUsers.reset')}
                     </Button>
                 </Tooltip>
             ),
@@ -108,7 +110,7 @@ const AdminUsersPage: NextPage = () => {
                 <Space align="center">
                     <TeamOutlined style={{ fontSize: 22, color: '#e67e22' }} />
                     <Title level={3} style={{ margin: 0 }}>
-                        Gestion des Utilisateurs
+                        {t('adminUsers.title')}
                     </Title>
                 </Space>
 
@@ -117,49 +119,49 @@ const AdminUsersPage: NextPage = () => {
                     columns={columns}
                     rowKey="id"
                     loading={isLoading}
-                    pagination={{ pageSize: 20, showTotal: (total) => `${total} utilisateur${total > 1 ? 's' : ''}` }}
-                    locale={{ emptyText: 'Aucun utilisateur enregistré' }}
+                    pagination={{ pageSize: 20, showTotal: (total) => t('adminUsers.total', { count: total }) }}
+                    locale={{ emptyText: t('adminUsers.empty') }}
                     scroll={{ x: 'max-content' }}
                 />
             </Space>
 
             <Modal
-                title={`Réinitialiser le mot de passe — ${selectedUser?.username}`}
+                title={t('adminUsers.resetTitle', { user: selectedUser?.username ?? '' })}
                 open={!!selectedUser}
                 onOk={handleConfirm}
                 onCancel={() => setSelectedUser(null)}
                 confirmLoading={isPending}
-                okText="Confirmer"
-                cancelText="Annuler"
+                okText={t('common.confirm')}
+                cancelText={t('common.cancel')}
             >
                 <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
                     <Form.Item
                         name="newPassword"
-                        label="Nouveau mot de passe"
+                        label={t('adminUsers.newPassword')}
                         rules={[
-                            { required: true, message: 'Mot de passe requis' },
-                            { min: 6, message: 'Minimum 6 caractères' },
+                            { required: true, message: t('adminUsers.passwordRequired') },
+                            { min: 6, message: t('adminUsers.passwordMin') },
                         ]}
                     >
-                        <Input.Password placeholder="Nouveau mot de passe" />
+                        <Input.Password placeholder={t('adminUsers.newPassword')} />
                     </Form.Item>
                     <Form.Item
                         name="confirmPassword"
-                        label="Confirmer le mot de passe"
+                        label={t('adminUsers.confirmPassword')}
                         dependencies={['newPassword']}
                         rules={[
-                            { required: true, message: 'Confirmation requise' },
+                            { required: true, message: t('adminUsers.confirmRequired') },
                             ({ getFieldValue }) => ({
                                 validator(_, value) {
                                     if (!value || getFieldValue('newPassword') === value) {
                                         return Promise.resolve();
                                     }
-                                    return Promise.reject('Les mots de passe ne correspondent pas');
+                                    return Promise.reject(t('adminUsers.passwordMismatch'));
                                 },
                             }),
                         ]}
                     >
-                        <Input.Password placeholder="Confirmer le mot de passe" />
+                        <Input.Password placeholder={t('adminUsers.confirmPassword')} />
                     </Form.Item>
                 </Form>
             </Modal>
