@@ -1,14 +1,23 @@
-import { ApartmentOutlined, ArrowLeftOutlined, DownloadOutlined } from '@ant-design/icons';
-import { Button, Card, Empty, Select, Space, Spin, Tabs, Tag, Typography } from 'antd';
+import {
+    ApartmentOutlined,
+    ArrowLeftOutlined,
+    DownloadOutlined,
+    RedoOutlined,
+    ZoomInOutlined,
+    ZoomOutOutlined,
+} from '@ant-design/icons';
+import { Button, Card, Empty, Select, Space, Spin, Tabs, Tag, Tooltip, Typography } from 'antd';
 import type { NextPage } from 'next';
+import { useTranslation } from 'next-i18next';
 import { useRouter } from 'next/router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { ProtectedRoute } from '@/components/ProtectedRoute';
 import type { AncestorNode, DescendantNode } from '@/domains/family/types';
 import { useAncestors, useDescendants, useSiblings, useSpouses } from '@/domains/family/useFamily';
 import type { Profile } from '@/domains/profiles/types';
 import { useProfile } from '@/domains/profiles/useProfiles';
+import { qualifierSymbol } from '@/utils/formatDate';
 
 import styles from './tree.module.scss';
 
@@ -245,19 +254,72 @@ function layoutDescendants(root: DescendantNode, spouses: Profile[]): TreeLayout
     return { nodes, edges, w, h };
 }
 
+// ─── Zoom bounds ──────────────────────────────────────────────────────────────
+const ZOOM_MIN = 0.4;
+const ZOOM_MAX = 1.6;
+const ZOOM_STEP = 0.2;
+
 // ─── SVG tree renderer ────────────────────────────────────────────────────────
 const SvgTree = ({ nodes, edges, w, h }: TreeLayout) => {
+    const { t } = useTranslation('common');
     const router = useRouter();
+    const [scale, setScale] = useState(1);
+
+    const genderLabel = (gender?: string): string =>
+        gender === 'MALE' ? t('tree.genderMale')
+            : gender === 'FEMALE' ? t('tree.genderFemale')
+            : t('tree.genderUnknown');
+
+    const open = (id: number) => router.push(`/profiles/${id}`);
+    const clamp = (s: number) => Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, Number(s.toFixed(2))));
 
     return (
-        <div className={styles.treeScroll}>
-            <div className={styles.treeCanvas} style={{ width: w, height: h }}>
-                {/* Bezier paths */}
-                <svg
-                    width={w}
-                    height={h}
-                    style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none' }}
-                >
+        <div>
+            {/* Zoom toolbar */}
+            <Space style={{ marginBottom: 8 }} role="group" aria-label={t('tree.zoomControls')}>
+                <Tooltip title={t('tree.zoomOut')}>
+                    <Button
+                        size="small"
+                        icon={<ZoomOutOutlined />}
+                        aria-label={t('tree.zoomOut')}
+                        disabled={scale <= ZOOM_MIN}
+                        onClick={() => setScale((s) => clamp(s - ZOOM_STEP))}
+                    />
+                </Tooltip>
+                <Text type="secondary" style={{ width: 48, textAlign: 'center', display: 'inline-block' }}>
+                    {Math.round(scale * 100)}%
+                </Text>
+                <Tooltip title={t('tree.zoomIn')}>
+                    <Button
+                        size="small"
+                        icon={<ZoomInOutlined />}
+                        aria-label={t('tree.zoomIn')}
+                        disabled={scale >= ZOOM_MAX}
+                        onClick={() => setScale((s) => clamp(s + ZOOM_STEP))}
+                    />
+                </Tooltip>
+                <Tooltip title={t('tree.zoomReset')}>
+                    <Button
+                        size="small"
+                        icon={<RedoOutlined />}
+                        aria-label={t('tree.zoomReset')}
+                        onClick={() => setScale(1)}
+                    />
+                </Tooltip>
+            </Space>
+
+            <div className={styles.treeScroll}>
+                <div style={{ width: w * scale, height: h * scale }}>
+                    <div
+                        className={styles.treeCanvas}
+                        style={{ width: w, height: h, transform: `scale(${scale})`, transformOrigin: '0 0' }}
+                    >
+                        {/* Bezier paths */}
+                        <svg
+                            width={w}
+                            height={h}
+                            style={{ position: 'absolute', top: 0, left: 0, pointerEvents: 'none' }}
+                        >
                     {edges.map((e, i) => {
                         if (e.marriage) {
                             return (
@@ -304,48 +366,53 @@ const SvgTree = ({ nodes, edges, w, h }: TreeLayout) => {
                     })}
                 </svg>
 
-                {/* Node cards */}
-                {nodes.map((node) => {
-                    const birthYear = node.profile.dateOfBirth ? new Date(node.profile.dateOfBirth).getFullYear() : '?';
-                    const deathYear = node.profile.dateOfDeath
-                        ? new Date(node.profile.dateOfDeath).getFullYear()
-                        : null;
-                    const extraClass =
-                        node.nodeType === 'root' ? styles.rootNode :
-                        node.nodeType === 'sibling' ? styles.siblingNode :
-                        node.nodeType === 'spouse' ? styles.spouseNode :
-                        '';
-                    return (
-                        <div
-                            key={node.profile.id}
-                            className={`${styles.treeNode} ${extraClass}`}
-                            style={{
-                                left: node.x,
-                                top: node.y,
-                                width: NW,
-                                height: NH,
-                                animationDelay: `${node.animDelay}ms`,
-                            }}
-                            onClick={() => router.push(`/profiles/${node.profile.id}`)}
-                            role="button"
-                            tabIndex={0}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') router.push(`/profiles/${node.profile.id}`);
-                            }}
-                        >
-                            <div className={styles.genderBar} data-gender={node.profile.gender} />
-                            <div className={styles.nodeContent}>
-                                <div className={styles.nodeName}>
-                                    {node.profile.firstName} {node.profile.lastName}
+                        {/* Node cards */}
+                        {nodes.map((node) => {
+                            const birthYear = node.profile.dateOfBirth
+                                ? `${qualifierSymbol(node.profile.birthDateQualifier)}${new Date(node.profile.dateOfBirth).getFullYear()}`
+                                : '?';
+                            const deathYear = node.profile.dateOfDeath
+                                ? `${qualifierSymbol(node.profile.deathDateQualifier)}${new Date(node.profile.dateOfDeath).getFullYear()}`
+                                : null;
+                            const extraClass =
+                                node.nodeType === 'root' ? styles.rootNode :
+                                node.nodeType === 'sibling' ? styles.siblingNode :
+                                node.nodeType === 'spouse' ? styles.spouseNode :
+                                '';
+                            const lifespan = `${birthYear}${deathYear ? ` – ${deathYear}` : ''}`;
+                            const fullName = `${node.profile.firstName ?? ''} ${node.profile.lastName ?? ''}`.trim();
+                            return (
+                                <div
+                                    key={node.profile.id}
+                                    className={`${styles.treeNode} ${extraClass}`}
+                                    style={{
+                                        left: node.x,
+                                        top: node.y,
+                                        width: NW,
+                                        height: NH,
+                                        animationDelay: `${node.animDelay}ms`,
+                                    }}
+                                    onClick={() => open(node.profile.id)}
+                                    role="button"
+                                    tabIndex={0}
+                                    aria-label={`${fullName}, ${genderLabel(node.profile.gender)}, ${lifespan}. ${t('tree.openProfile')}.`}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                            e.preventDefault();
+                                            open(node.profile.id);
+                                        }
+                                    }}
+                                >
+                                    <div className={styles.genderBar} data-gender={node.profile.gender ?? 'UNKNOWN'} />
+                                    <div className={styles.nodeContent}>
+                                        <div className={styles.nodeName}>{fullName}</div>
+                                        <div className={styles.nodeDates}>{lifespan}</div>
+                                    </div>
                                 </div>
-                                <div className={styles.nodeDates}>
-                                    {birthYear}
-                                    {deathYear ? ` – ${deathYear}` : ''}
-                                </div>
-                            </div>
-                        </div>
-                    );
-                })}
+                            );
+                        })}
+                    </div>
+                </div>
             </div>
         </div>
     );
@@ -362,8 +429,12 @@ function exportTreeAsSvg(layout: TreeLayout, filename: string) {
 
     const rects = layout.nodes.map((node) => {
         const genderColor = node.profile.gender === 'MALE' ? MALE_COLOR : FEMALE_COLOR;
-        const birthYear = node.profile.dateOfBirth ? new Date(node.profile.dateOfBirth).getFullYear() : '?';
-        const deathYear = node.profile.dateOfDeath ? new Date(node.profile.dateOfDeath).getFullYear() : null;
+        const birthYear = node.profile.dateOfBirth
+            ? `${qualifierSymbol(node.profile.birthDateQualifier)}${new Date(node.profile.dateOfBirth).getFullYear()}`
+            : '?';
+        const deathYear = node.profile.dateOfDeath
+            ? `${qualifierSymbol(node.profile.deathDateQualifier)}${new Date(node.profile.dateOfDeath).getFullYear()}`
+            : null;
         const dates = deathYear ? `${birthYear} – ${deathYear}` : String(birthYear);
         const name = [node.profile.firstName, node.profile.lastName].filter(Boolean).join(' ') || '?';
 
@@ -413,16 +484,15 @@ const countDescendants = (node: DescendantNode): number =>
     1 + node.children.reduce((acc, c) => acc + countDescendants(c), 0);
 
 // ─── Depth selector ───────────────────────────────────────────────────────────
-const DEPTH_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8].map((d) => ({
-    value: d,
-    label: `${d} génération${d > 1 ? 's' : ''}`,
-}));
+const DEPTH_VALUES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
 // ─── Page content ─────────────────────────────────────────────────────────────
 const TreeContent = () => {
+    const { t } = useTranslation('common');
     const router = useRouter();
     const id = Number(router.query.id);
     const [depth, setDepth] = useState(4);
+    const depthOptions = DEPTH_VALUES.map((d) => ({ value: d, label: t('tree.generations', { count: d }) }));
 
     const [activeTab, setActiveTab] = useState<string>('ancestors');
     const { data: profile } = useProfile(id);
@@ -436,15 +506,21 @@ const TreeContent = () => {
     const ancestorCount = ancestors ? countAncestors(ancestors) - 1 : 0;
     const descendantCount = descendants ? countDescendants(descendants) - 1 : 0;
 
-    const ancestorLayout = ancestors ? layoutAncestors(ancestors, siblings, spouses) : null;
-    const descendantLayout = descendants ? layoutDescendants(descendants, spouses) : null;
+    const ancestorLayout = useMemo(
+        () => (ancestors ? layoutAncestors(ancestors, siblings, spouses) : null),
+        [ancestors, siblings, spouses],
+    );
+    const descendantLayout = useMemo(
+        () => (descendants ? layoutDescendants(descendants, spouses) : null),
+        [descendants, spouses],
+    );
 
     const tabs = [
         {
             key: 'ancestors',
             label: (
                 <span>
-                    Ancêtres
+                    {t('tree.ancestors')}
                     {ancestorCount > 0 && (
                         <Tag color="orange" style={{ marginLeft: 6 }}>
                             {ancestorCount}
@@ -455,7 +531,7 @@ const TreeContent = () => {
             children: loadingAncestors ? (
                 <Spin style={{ display: 'block', margin: '40px auto' }} />
             ) : !ancestorLayout ? (
-                <Empty description="Aucun ancêtre trouvé" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+                <Empty description={t('tree.noAncestor')} image={Empty.PRESENTED_IMAGE_SIMPLE} />
             ) : (
                 <SvgTree {...ancestorLayout} />
             ),
@@ -464,7 +540,7 @@ const TreeContent = () => {
             key: 'descendants',
             label: (
                 <span>
-                    Descendants
+                    {t('tree.descendants')}
                     {descendantCount > 0 && (
                         <Tag color="green" style={{ marginLeft: 6 }}>
                             {descendantCount}
@@ -476,11 +552,11 @@ const TreeContent = () => {
                 <Spin style={{ display: 'block', margin: '40px auto' }} />
             ) : !descendants || descendantCount === 0 ? (
                 <Empty
-                    description="Aucun descendant enregistré"
+                    description={t('tree.noDescendant')}
                     image={Empty.PRESENTED_IMAGE_SIMPLE}
                 >
                     <Button onClick={() => router.push(`/profiles/${id}`)}>
-                        Gérer la famille
+                        {t('tree.manageFamily')}
                     </Button>
                 </Empty>
             ) : (
@@ -505,11 +581,11 @@ const TreeContent = () => {
                         icon={<ArrowLeftOutlined />}
                         onClick={() => router.push(`/profiles/${id}`)}
                     >
-                        Retour au profil
+                        {t('tree.backToProfile')}
                     </Button>
                     <div>
                         <Title level={3} style={{ margin: 0 }}>
-                            <ApartmentOutlined /> Arbre généalogique
+                            <ApartmentOutlined /> {t('tree.title')}
                         </Title>
                         {profile && (
                             <Text type="secondary">
@@ -520,11 +596,11 @@ const TreeContent = () => {
                 </Space>
 
                 <Space align="center">
-                    <Text type="secondary">Profondeur :</Text>
+                    <Text type="secondary">{t('tree.depth')}</Text>
                     <Select
                         value={depth}
                         onChange={setDepth}
-                        options={DEPTH_OPTIONS}
+                        options={depthOptions}
                         style={{ width: 160 }}
                     />
                     <Button
@@ -537,7 +613,7 @@ const TreeContent = () => {
                         }}
                         disabled={activeTab === 'ancestors' ? !ancestorLayout : !descendantLayout}
                     >
-                        Exporter SVG
+                        {t('tree.exportSvg')}
                     </Button>
                 </Space>
             </div>

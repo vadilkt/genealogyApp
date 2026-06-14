@@ -1,6 +1,7 @@
 import { ApartmentOutlined, DownloadOutlined, SearchOutlined } from '@ant-design/icons';
 import { Button, Empty, Input, Space, Spin, Statistic, Tag, Tooltip, Typography } from 'antd';
 import type { NextPage } from 'next';
+import { useTranslation } from 'next-i18next';
 import { useRouter } from 'next/router';
 import { useMemo, useState } from 'react';
 
@@ -301,6 +302,7 @@ interface SvgGlobalTreeProps {
 }
 
 const SvgGlobalTree = ({ layout, matchedIds, focusId }: SvgGlobalTreeProps) => {
+    const { t } = useTranslation('common');
     const router = useRouter();
     const hasSearch = matchedIds !== null;
 
@@ -372,7 +374,7 @@ const SvgGlobalTree = ({ layout, matchedIds, focusId }: SvgGlobalTreeProps) => {
                         >
                             <div className={styles.genderBar} data-gender={node.gender ?? 'UNKNOWN'} />
                             <div className={styles.nodeContent}>
-                                <Tooltip title={`Voir le profil de ${name}`}>
+                                <Tooltip title={t('treeGlobal.viewProfileOf', { name })}>
                                     <div className={styles.nodeName}>{name}</div>
                                 </Tooltip>
                                 <div className={styles.nodeDates}>
@@ -390,6 +392,7 @@ const SvgGlobalTree = ({ layout, matchedIds, focusId }: SvgGlobalTreeProps) => {
 
 // ─── Page content ─────────────────────────────────────────────────────────────
 const GlobalTreeContent = () => {
+    const { t } = useTranslation('common');
     const { data: rawNodes = [], isLoading } = useFamilyGraph();
     const [search, setSearch] = useState('');
 
@@ -438,10 +441,10 @@ const GlobalTreeContent = () => {
                     <Space align="center" style={{ marginBottom: 4 }}>
                         <ApartmentOutlined style={{ fontSize: 22, color: '#e67e22' }} />
                         <Title level={3} style={{ margin: 0 }}>
-                            Arbre généalogique global
+                            {t('treeGlobal.title')}
                         </Title>
                     </Space>
-                    <Text type="secondary">Vue d'ensemble de toute la famille</Text>
+                    <Text type="secondary">{t('treeGlobal.subtitle')}</Text>
                 </div>
 
                 <Button
@@ -449,7 +452,7 @@ const GlobalTreeContent = () => {
                     disabled={!layout.nodes.length}
                     onClick={() => exportGlobalTreeAsSvg(layout, 'arbre-global.svg')}
                 >
-                    Exporter SVG
+                    {t('treeGlobal.exportSvg')}
                 </Button>
             </div>
 
@@ -464,7 +467,7 @@ const GlobalTreeContent = () => {
                             padding: '12px 24px',
                         }}
                     >
-                        <Statistic title="Profils" value={nodes.length} />
+                        <Statistic title={t('treeGlobal.statProfiles')} value={nodes.length} />
                     </div>
                     <div
                         style={{
@@ -474,7 +477,7 @@ const GlobalTreeContent = () => {
                             padding: '12px 24px',
                         }}
                     >
-                        <Statistic title="Générations" value={genCount} />
+                        <Statistic title={t('treeGlobal.statGenerations')} value={genCount} />
                     </div>
                     <div
                         style={{
@@ -484,7 +487,7 @@ const GlobalTreeContent = () => {
                             padding: '12px 24px',
                         }}
                     >
-                        <Statistic title="Avec liens familiaux" value={connectedCount} />
+                        <Statistic title={t('treeGlobal.statConnected')} value={connectedCount} />
                     </div>
                 </div>
             )}
@@ -492,7 +495,7 @@ const GlobalTreeContent = () => {
             {/* Search */}
             <div style={{ marginBottom: 16 }}>
                 <Input
-                    placeholder="Rechercher une personne dans l'arbre..."
+                    placeholder={t('treeGlobal.searchPlaceholder')}
                     prefix={<SearchOutlined />}
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
@@ -504,7 +507,7 @@ const GlobalTreeContent = () => {
                         color={matchedIds.size > 0 ? 'orange' : 'default'}
                         style={{ marginLeft: 8 }}
                     >
-                        {matchedIds.size} résultat{matchedIds.size !== 1 ? 's' : ''}
+                        {t('treeGlobal.results', { count: matchedIds.size })}
                     </Tag>
                 )}
             </div>
@@ -516,7 +519,7 @@ const GlobalTreeContent = () => {
                 </div>
             ) : nodes.length === 0 ? (
                 <Empty
-                    description="Aucun profil avec des liens familiaux"
+                    description={t('treeGlobal.empty')}
                     image={Empty.PRESENTED_IMAGE_SIMPLE}
                 />
             ) : (
