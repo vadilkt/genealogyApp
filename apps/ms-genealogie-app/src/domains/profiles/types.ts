@@ -12,6 +12,10 @@ export interface Profile {
     gender: string | null;
     dateOfBirth: string | null;
     dateOfDeath: string | null;
+    birthDateQualifier: string | null;
+    birthDatePrecision: string | null;
+    deathDateQualifier: string | null;
+    deathDatePrecision: string | null;
     age: number | null;
     residence: string | null;
     birthPlace: Place | null;
@@ -22,7 +26,14 @@ export interface Profile {
     updatedAt: string | null;
 }
 
-export interface CreateProfilePayload {
+export interface DateMetaPayload {
+    birthDateQualifier?: string;
+    birthDatePrecision?: string;
+    deathDateQualifier?: string;
+    deathDatePrecision?: string;
+}
+
+export interface CreateProfilePayload extends DateMetaPayload {
     firstName: string;
     lastName: string;
     gender: string;
@@ -33,7 +44,7 @@ export interface CreateProfilePayload {
     deathPlaceId?: number | null;
 }
 
-export interface UpdateProfilePayload {
+export interface UpdateProfilePayload extends DateMetaPayload {
     firstName?: string;
     lastName?: string;
     gender?: string;
@@ -67,6 +78,10 @@ export interface ProfileFormValues {
     gender: string;
     dateOfBirth: Dayjs;
     dateOfDeath?: Dayjs | null;
+    birthDateQualifier?: string;
+    birthDatePrecision?: string;
+    deathDateQualifier?: string;
+    deathDatePrecision?: string;
     residence: string;
     birthPlaceId?: number;
     deathPlaceId?: number;

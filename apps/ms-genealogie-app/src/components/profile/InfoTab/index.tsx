@@ -1,50 +1,64 @@
 import { ManOutlined, WomanOutlined } from '@ant-design/icons';
 import { Descriptions, Empty, Space, Spin, Tag } from 'antd';
+import { useTranslation } from 'next-i18next';
 
 import { useProfile } from '@/domains/profiles/useProfiles';
-import { formatDate } from '@/utils/formatDate';
+import { formatGenealogicalDate } from '@/utils/formatDate';
 
 export const InfoTab = ({ profileId }: { profileId: number }) => {
+    const { t } = useTranslation('common');
     const { data: profile, isLoading } = useProfile(profileId);
 
     if (isLoading) return <Spin />;
-    if (!profile) return <Empty description="Profil introuvable" />;
+    if (!profile) return <Empty description={t('common.notFound')} />;
 
     return (
         <Descriptions bordered column={{ xs: 1, sm: 2 }} size="middle">
-            <Descriptions.Item label="Prénom">{profile.firstName}</Descriptions.Item>
-            <Descriptions.Item label="Nom">{profile.lastName || '—'}</Descriptions.Item>
-            <Descriptions.Item label="Genre">
+            <Descriptions.Item label={t('info.firstName')}>{profile.firstName}</Descriptions.Item>
+            <Descriptions.Item label={t('info.lastName')}>{profile.lastName || '—'}</Descriptions.Item>
+            <Descriptions.Item label={t('info.gender')}>
                 {profile.gender === 'MALE' ? (
                     <Space>
                         <ManOutlined />
-                        <Tag color="blue">Homme</Tag>
+                        <Tag color="blue">{t('common.male')}</Tag>
                     </Space>
                 ) : (
                     <Space>
                         <WomanOutlined />
-                        <Tag color="pink">Femme</Tag>
+                        <Tag color="pink">{t('common.female')}</Tag>
                     </Space>
                 )}
             </Descriptions.Item>
-            <Descriptions.Item label="Résidence">{profile.residence}</Descriptions.Item>
-            <Descriptions.Item label="Date de naissance">{formatDate(profile.dateOfBirth)}</Descriptions.Item>
-            <Descriptions.Item label="Date de décès">
+            <Descriptions.Item label={t('info.residence')}>{profile.residence}</Descriptions.Item>
+            <Descriptions.Item label={t('info.birthDate')}>
+                {formatGenealogicalDate(
+                    profile.dateOfBirth,
+                    profile.birthDateQualifier,
+                    profile.birthDatePrecision,
+                )}
+            </Descriptions.Item>
+            <Descriptions.Item label={t('info.deathDate')}>
                 {profile.dateOfDeath ? (
-                    <Tag color="default">{formatDate(profile.dateOfDeath)}</Tag>
+                    <Tag color="default">
+                        {formatGenealogicalDate(
+                            profile.dateOfDeath,
+                            profile.deathDateQualifier,
+                            profile.deathDatePrecision,
+                        )}
+                    </Tag>
                 ) : (
-                    <Tag color="green">Vivant(e)</Tag>
+                    <Tag color="green">{t('common.living')}</Tag>
                 )}
             </Descriptions.Item>
             {profile.age !== null && (
-                <Descriptions.Item label="Âge">{profile.age} ans</Descriptions.Item>
+                <Descriptions.Item label={t('info.age')}>{t('common.years', { count: profile.age })}</Descriptions.Item>
             )}
-            <Descriptions.Item label="Lieu de naissance">
+            <Descriptions.Item label={t('info.birthPlace')}>
                 {profile.birthPlace
                     ? `${profile.birthPlace.city}, ${profile.birthPlace.country}`
                     : '—'}
             </Descriptions.Item>
-            <Descriptions.Item label="Lieu de décès">
+            <Descriptions.Item label={t('info.deathPlace')}>
                 {profile.deathPlace
                     ? `${profile.deathPlace.city}, ${profile.deathPlace.country}`
                     : '—'}
