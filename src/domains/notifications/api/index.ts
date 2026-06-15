@@ -4,12 +4,12 @@ import type { AppNotification } from '../types';
 
 export const getNotifications = async (): Promise<AppNotification[]> => {
     const res = await apiClient.get<AppNotification[]>('/notifications');
-    return res.data;
+    return res.data ?? [];
 };
 
 export const getUnreadCount = async (): Promise<number> => {
     const res = await apiClient.get<{ count: number }>('/notifications/unread-count');
-    return res.data.count;
+    return res.data?.count ?? 0;
 };
 
 export const markAllRead = async (): Promise<void> => {
