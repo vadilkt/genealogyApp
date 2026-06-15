@@ -4,7 +4,6 @@ FROM node:20-alpine AS builder
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Copy full monorepo (needed for yarn workspaces resolution)
 COPY . .
 
 RUN yarn install --frozen-lockfile
@@ -14,7 +13,7 @@ ARG RAILWAY_GIT_COMMIT_SHA
 RUN echo "Building commit: ${RAILWAY_GIT_COMMIT_SHA:-local}"
 
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN yarn workspace @ms-genealogie/app build
+RUN yarn build
 
 # ─── Stage 2: runtime ────────────────────────────────────────────────────────
 FROM node:20-alpine AS runner
@@ -26,16 +25,15 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 
-# outputFileTracingRoot = monorepo root → standalone mirrors the full monorepo tree
-# server.js lands at apps/ms-genealogie-app/server.js inside standalone/
-COPY --from=builder /app/apps/ms-genealogie-app/.next/standalone ./
+# `output: 'standalone'` emits a self-contained server at .next/standalone/server.js
+COPY --from=builder /app/.next/standalone ./
 
-# Static assets: must sit next to server.js in apps/ms-genealogie-app/.next/static/
-COPY --from=builder /app/apps/ms-genealogie-app/.next/static ./apps/ms-genealogie-app/.next/static
+# Static assets must sit next to server.js at .next/static/
+COPY --from=builder /app/.next/static ./.next/static
 
 # Public directory (/locales, favicon, etc.)
-COPY --from=builder /app/apps/ms-genealogie-app/public ./apps/ms-genealogie-app/public
+COPY --from=builder /app/public ./public
 
 EXPOSE 3000
 
-CMD ["node", "apps/ms-genealogie-app/server.js"]
+CMD ["node", "server.js"]

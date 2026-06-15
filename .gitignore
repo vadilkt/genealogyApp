@@ -7,9 +7,6 @@ dist/
 out/
 build/
 
-# turbo
-.turbo/
-
 # environment variables
 .env*.local
 
