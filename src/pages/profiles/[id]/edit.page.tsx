@@ -112,10 +112,14 @@ const EditProfileContent = () => {
         );
     };
 
-    const placeOptions = places.map((p) => ({
-        value: p.id,
-        label: `${p.city}, ${p.country}${p.region ? ` (${p.region})` : ''}`,
-    }));
+    const placeLabel = (p: (typeof places)[number]) =>
+        `${p.city}, ${p.country}${p.region ? ` (${p.region})` : ''}`;
+    const placeOptions = places.map((p) => ({ value: p.id, label: placeLabel(p) }));
+    const residenceOptions = places.map((p) => ({ value: placeLabel(p), label: placeLabel(p) }));
+    // Keep an existing free-text residence selectable even if it isn't a known place.
+    if (profile?.residence && !residenceOptions.some((o) => o.value === profile.residence)) {
+        residenceOptions.unshift({ value: profile.residence, label: profile.residence });
+    }
 
     if (isLoading || !id) {
         return (
@@ -191,7 +195,15 @@ const EditProfileContent = () => {
                                 label={t('form.residence')}
                                 rules={[{ required: true, message: t('form.residenceRequired') }]}
                             >
-                                <Input placeholder={t('form.residencePlaceholder')} />
+                                <Select
+                                    placeholder={t('form.searchPlace')}
+                                    options={residenceOptions}
+                                    showSearch
+                                    allowClear
+                                    filterOption={(input, option) =>
+                                        (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                                    }
+                                />
                             </Form.Item>
                         </Col>
                     </Row>
